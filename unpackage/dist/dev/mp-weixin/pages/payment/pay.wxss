@@ -1,0 +1,118 @@
+
+.container.data-v-7250164a {
+	min-height: 100vh;
+	background-color: #f5f7fa;
+	padding: 30rpx;
+}
+.header-section.data-v-7250164a {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 60rpx 0;
+}
+.label.data-v-7250164a {
+	font-size: 28rpx;
+	color: #666;
+	margin-bottom: 20rpx;
+}
+.amount-box.data-v-7250164a {
+	display: flex;
+	align-items: baseline;
+	margin-bottom: 20rpx;
+}
+.currency.data-v-7250164a {
+	font-size: 40rpx;
+	font-weight: bold;
+	color: #333;
+}
+.amount.data-v-7250164a {
+	font-size: 80rpx;
+	font-weight: bold;
+	color: #333;
+}
+.countdown.data-v-7250164a {
+	font-size: 26rpx;
+	color: #999;
+}
+.time.data-v-7250164a {
+	color: #ff4d4f;
+	margin-left: 10rpx;
+}
+.payment-methods.data-v-7250164a {
+	background: #fff;
+	border-radius: 20rpx;
+	padding: 0 30rpx;
+	margin-top: 40rpx;
+}
+.method-item.data-v-7250164a {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: 120rpx;
+	border-bottom: 1rpx solid #f5f5f5;
+}
+.method-item.data-v-7250164a:last-child {
+	border-bottom: none;
+}
+.left.data-v-7250164a {
+	display: flex;
+	align-items: center;
+}
+.icon.data-v-7250164a {
+	font-size: 50rpx;
+	margin-right: 20rpx;
+}
+.wechat.data-v-7250164a { color: #09bb07;
+}
+.alipay.data-v-7250164a { color: #1296db;
+}
+.wallet.data-v-7250164a { color: #ffc107;
+}
+.info.data-v-7250164a {
+	display: flex;
+	flex-direction: column;
+}
+.name.data-v-7250164a {
+	font-size: 30rpx;
+	color: #333;
+}
+.balance.data-v-7250164a {
+	font-size: 22rpx;
+	color: #999;
+	margin-top: 4rpx;
+}
+.radio.data-v-7250164a {
+	width: 40rpx;
+	height: 40rpx;
+	border-radius: 50%;
+	border: 2rpx solid #ccc;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.3s;
+}
+.radio.checked.data-v-7250164a {
+	border-color: #667eea;
+	background: #fff;
+}
+.dot.data-v-7250164a {
+	width: 24rpx;
+	height: 24rpx;
+	border-radius: 50%;
+	background: #667eea;
+}
+.pay-btn.data-v-7250164a {
+	margin-top: 80rpx;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: #fff;
+	border-radius: 50rpx;
+	font-weight: bold;
+	font-size: 34rpx;
+	height: 100rpx;
+	line-height: 100rpx;
+	box-shadow: 0 10rpx 20rpx rgba(102, 126, 234, 0.3);
+}
+.pay-btn-hover.data-v-7250164a {
+	opacity: 0.9;
+	transform: translateY(2rpx);
+}
