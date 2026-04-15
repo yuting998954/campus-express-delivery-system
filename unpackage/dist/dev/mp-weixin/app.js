@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const common_vendor = require("./common/vendor.js");
+const utils_storage = require("./utils/storage.js");
 if (!Math) {
   "./pages/index/index.js";
   "./pages/publish/index.js";
@@ -16,21 +17,43 @@ if (!Math) {
   "./pages/payment/pay.js";
   "./pages/login/login.js";
   "./pages/login/register.js";
+  "./pages/my/messages/messages.js";
 }
 const _sfc_main = {
-  onLaunch: function() {
-    common_vendor.index.__f__("log", "at App.vue:6", "App Launch");
-    this.checkLoginStatus();
-  },
-  onShow: function() {
-    common_vendor.index.__f__("log", "at App.vue:11", "App Show");
-  },
-  onHide: function() {
-    common_vendor.index.__f__("log", "at App.vue:14", "App Hide");
-  },
-  methods: {
-    checkLoginStatus() {
-    }
+  __name: "App",
+  setup(__props) {
+    common_vendor.onLaunch(() => {
+      common_vendor.index.__f__("log", "at App.vue:6", "App Launch");
+    });
+    common_vendor.onShow(() => {
+      common_vendor.index.__f__("log", "at App.vue:10", "App Show");
+      refreshUserInfo();
+    });
+    common_vendor.onHide(() => {
+      common_vendor.index.__f__("log", "at App.vue:16", "App Hide");
+    });
+    const refreshUserInfo = async () => {
+      const token = utils_storage.getToken();
+      if (!token)
+        return;
+      try {
+        const res = await common_vendor.index.request({
+          url: "http://localhost:8081/api/user/info",
+          method: "GET",
+          header: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (res.data && res.data.code === 200 && res.data.data) {
+          utils_storage.setUserInfo(res.data.data);
+          common_vendor.index.__f__("log", "at App.vue:34", "用户信息已刷新:", res.data.data);
+        }
+      } catch (e) {
+        common_vendor.index.__f__("error", "at App.vue:37", "刷新用户信息失败", e);
+      }
+    };
+    return () => {
+    };
   }
 };
 function createApp() {

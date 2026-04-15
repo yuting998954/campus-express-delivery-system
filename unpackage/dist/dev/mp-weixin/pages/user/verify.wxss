@@ -4,8 +4,6 @@
 	background-color: #f5f7fa;
 	min-height: 100vh;
 }
-
-/* 步骤条 */
 .steps-box.data-v-71a5fc89 {
 	display: flex;
 	align-items: center;
@@ -55,9 +53,8 @@
 .step-line.active.data-v-71a5fc89 {
 	background: #667eea;
 }
-
-/* 通用按钮 */
-.next-btn.data-v-71a5fc89, .action-btn.data-v-71a5fc89 {
+.next-btn.data-v-71a5fc89,
+.action-btn.data-v-71a5fc89 {
 	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 	color: #fff;
 	border-radius: 50rpx;
@@ -78,8 +75,6 @@
 .btn-group button.data-v-71a5fc89 {
 	flex: 1;
 }
-
-/* 步骤 1 */
 .form-card.data-v-71a5fc89 {
 	background: #fff;
 	border-radius: 20rpx;
@@ -126,8 +121,6 @@
 .security-tip .icon.data-v-71a5fc89 {
 	margin-right: 10rpx;
 }
-
-/* 步骤 2 */
 .method-card.data-v-71a5fc89 {
 	background: #fff;
 	border-radius: 20rpx;
@@ -180,8 +173,6 @@
 	text-align: center;
 	margin-top: 20rpx;
 }
-
-/* 步骤 3 */
 .upload-card.data-v-71a5fc89 {
 	background: #fff;
 	border-radius: 20rpx;
@@ -227,7 +218,7 @@
 	bottom: 0;
 	left: 0;
 	width: 100%;
-	background: rgba(0,0,0,0.5);
+	background: rgba(0, 0, 0, 0.5);
 	color: #fff;
 	font-size: 24rpx;
 	text-align: center;
@@ -265,8 +256,6 @@
 	text-align: center;
 	margin-bottom: 30rpx;
 }
-
-/* 步骤 4 & 5 */
 .status-page.data-v-71a5fc89 {
 	display: flex;
 	flex-direction: column;
@@ -283,9 +272,11 @@
 	margin-bottom: 40rpx;
 }
 @keyframes spin-71a5fc89 {
-0% { transform: rotate(0deg);
+0% {
+		transform: rotate(0deg);
 }
-100% { transform: rotate(360deg);
+100% {
+		transform: rotate(360deg);
 }
 }
 .status-title.data-v-71a5fc89 {

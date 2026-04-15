@@ -57,7 +57,6 @@
 	border-left-color: #95ec69;
 }
 .input-bar.data-v-0a633310 {
-
 	padding: 20rpx 15rpx;
 	background-color: #f7f7f7;
 	display: flex;

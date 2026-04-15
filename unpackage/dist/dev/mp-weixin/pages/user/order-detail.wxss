@@ -52,7 +52,8 @@
 .total .value.data-v-29badeee {
 	color: #f5222d;
 }
-.runner-info.data-v-29badeee {
+.runner-info.data-v-29badeee,
+.publisher-info.data-v-29badeee {
 	display: flex;
 	align-items: center;
 }
@@ -74,6 +75,11 @@
 	font-size: 22rpx;
 	color: #faad14;
 }
+.phone.data-v-29badeee {
+	font-size: 24rpx;
+	color: #666;
+	margin-top: 4rpx;
+}
 .photo-list.data-v-29badeee {
 	display: flex;
 	gap: 20rpx;
@@ -91,6 +97,68 @@
 	border-radius: 8rpx;
 	margin-bottom: 10rpx;
 }
+
+/* 进度上报面板 */
+.progress-panel.data-v-29badeee {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: #fff;
+}
+.progress-panel .card-title.data-v-29badeee {
+	color: #fff;
+	border-left-color: #fff;
+}
+.progress-steps.data-v-29badeee {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 30rpx 10rpx;
+}
+.step.data-v-29badeee {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+.step-dot.data-v-29badeee {
+	width: 24rpx;
+	height: 24rpx;
+	border-radius: 50%;
+	background-color: rgba(255, 255, 255, 0.3);
+	margin-bottom: 10rpx;
+}
+.step.active .step-dot.data-v-29badeee {
+	background-color: #fff;
+}
+.step.completed .step-dot.data-v-29badeee {
+	background-color: #52c41a;
+}
+.step-label.data-v-29badeee {
+	font-size: 22rpx;
+	white-space: nowrap;
+}
+.step-line.data-v-29badeee {
+	flex: 1;
+	height: 4rpx;
+	background-color: rgba(255, 255, 255, 0.3);
+	margin: 0 10rpx;
+	margin-bottom: 30rpx;
+}
+.step-line.active.data-v-29badeee {
+	background-color: #52c41a;
+}
+.progress-actions.data-v-29badeee {
+	margin-top: 20rpx;
+}
+.progress-btn.data-v-29badeee {
+	width: 100%;
+	background-color: #fff;
+	color: #667eea;
+	border-radius: 40rpx;
+	font-weight: bold;
+}
+.progress-btn[disabled].data-v-29badeee {
+	background-color: rgba(255, 255, 255, 0.5);
+	color: #999;
+}
 .bottom-bar.data-v-29badeee {
 	position: fixed;
 	bottom: 0;
@@ -101,7 +169,7 @@
 	display: flex;
 	align-items: center;
 	padding: 0 30rpx;
-	box-shadow: 0 -2rpx 10rpx rgba(0,0,0,0.05);
+	box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 .bar-btn.data-v-29badeee {
 	flex: 1;
@@ -117,4 +185,89 @@
 .secondary.data-v-29badeee {
 	background-color: #f5f5f5;
 	color: #666;
+}
+
+/* 进度上报弹窗 */
+.modal-mask.data-v-29badeee {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	z-index: 999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.modal-content.data-v-29badeee {
+	width: 600rpx;
+	background-color: #fff;
+	border-radius: 24rpx;
+	padding: 40rpx;
+}
+.modal-title.data-v-29badeee {
+	font-size: 32rpx;
+	font-weight: bold;
+	text-align: center;
+	margin-bottom: 30rpx;
+}
+.modal-body.data-v-29badeee {
+	margin-bottom: 30rpx;
+}
+.upload-section.data-v-29badeee {
+	display: flex;
+	flex-direction: column;
+}
+.upload-label.data-v-29badeee {
+	font-size: 26rpx;
+	color: #666;
+	margin-bottom: 15rpx;
+}
+.upload-box.data-v-29badeee {
+	width: 200rpx;
+	height: 200rpx;
+	border: 2rpx dashed #ddd;
+	border-radius: 12rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.upload-placeholder.data-v-29badeee {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+.upload-icon.data-v-29badeee {
+	font-size: 60rpx;
+	color: #ccc;
+}
+.upload-text.data-v-29badeee {
+	font-size: 24rpx;
+	color: #999;
+	margin-top: 10rpx;
+}
+.proof-preview.data-v-29badeee {
+	width: 200rpx;
+	height: 200rpx;
+	border-radius: 12rpx;
+}
+.modal-actions.data-v-29badeee {
+	display: flex;
+	gap: 20rpx;
+}
+.modal-btn.data-v-29badeee {
+	flex: 1;
+	height: 80rpx;
+	line-height: 80rpx;
+	border-radius: 40rpx;
+	font-size: 28rpx;
+}
+.modal-btn.cancel.data-v-29badeee {
+	background-color: #f5f5f5;
+	color: #666;
+}
+.modal-btn.confirm.data-v-29badeee {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: #fff;
 }

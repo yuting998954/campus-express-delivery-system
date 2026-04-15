@@ -5,8 +5,6 @@
 	padding: 20rpx;
 	padding-bottom: 120rpx;
 }
-
-/* 头部状态 */
 .status-header.data-v-3fdceec0 {
 	display: flex;
 	flex-direction: column;
@@ -38,8 +36,6 @@
 	font-size: 26rpx;
 	color: #999;
 }
-
-/* 通用卡片样式 */
 .card.data-v-3fdceec0 {
 	background: #fff;
 	border-radius: 20rpx;
@@ -55,8 +51,6 @@
 	border-left: 6rpx solid #667eea;
 	padding-left: 16rpx;
 }
-
-/* 结算卡片 */
 .amount-box.data-v-3fdceec0 {
 	text-align: center;
 	margin-bottom: 40rpx;
@@ -100,8 +94,6 @@
 	color: #ff4d4f;
 	font-size: 32rpx;
 }
-
-/* 配送员卡片 */
 .runner-info.data-v-3fdceec0 {
 	display: flex;
 	align-items: center;
@@ -150,8 +142,6 @@
 .contact-btn .icon.data-v-3fdceec0 {
 	font-size: 32rpx;
 }
-
-/* 评价卡片 */
 .rating-box.data-v-3fdceec0 {
 	display: flex;
 	flex-direction: column;
@@ -231,8 +221,6 @@
 	font-size: 26rpx;
 	color: #666;
 }
-
-/* 底部按钮 */
 .footer-bar.data-v-3fdceec0 {
 	position: fixed;
 	bottom: 0;

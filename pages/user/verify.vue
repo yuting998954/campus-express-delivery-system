@@ -1,6 +1,5 @@
 <template>
 	<view class="container">
-		<!-- 步骤条 -->
 		<view class="steps-box">
 			<view class="step-item" :class="{ active: currentStep >= 1, finished: currentStep > 1 }">
 				<view class="step-circle">1</view>
@@ -35,9 +34,10 @@
 					</view>
 				</view>
 				<view class="input-group">
-					<view class="label">手机号码</view>
+					<view class="label">证件号码</view>
 					<view class="input-wrapper">
-						<input class="input" type="number" v-model="formData.phone" placeholder="请输入手机号码" maxlength="11" />
+						<input class="input" type="idcard" v-model="formData.code" placeholder="请输入证件号码"
+							maxlength="18" />
 						<text class="security-icon">🔒</text>
 					</view>
 				</view>
@@ -51,23 +51,23 @@
 
 		<!-- 步骤 2: 选择认证方式 -->
 		<view class="step-content" v-if="currentStep === 2">
-			<view class="method-card" :class="{ active: formData.authType === 'idcard' }" @click="selectType('idcard')">
+			<view class="method-card" :class="{ active: formData.authType === 1 }" @click="selectType(1)">
 				<view class="method-icon">🆔</view>
 				<view class="method-info">
 					<text class="method-title">身份证认证</text>
 					<text class="method-desc">上传身份证正反面照片</text>
 					<text class="method-tag">推荐</text>
 				</view>
-				<view class="check-icon" v-if="formData.authType === 'idcard'">✓</view>
+				<view class="check-icon" v-if="formData.authType === 1">✓</view>
 			</view>
 
-			<view class="method-card" :class="{ active: formData.authType === 'student' }" @click="selectType('student')">
+			<view class="method-card" :class="{ active: formData.authType === 0 }" @click="selectType(0)">
 				<view class="method-icon">🎓</view>
 				<view class="method-info">
 					<text class="method-title">学生证认证</text>
 					<text class="method-desc">上传学生证个人信息页</text>
 				</view>
-				<view class="check-icon" v-if="formData.authType === 'student'">✓</view>
+				<view class="check-icon" v-if="formData.authType === 0">✓</view>
 			</view>
 
 			<view class="info-tip">
@@ -82,12 +82,12 @@
 
 		<!-- 步骤 3: 上传证件 -->
 		<view class="step-content" v-if="currentStep === 3">
-			<!-- 身份证上传 -->
-			<view v-if="formData.authType === 'idcard'">
+			<view v-if="formData.authType === 1">
 				<view class="upload-card">
 					<view class="card-title">身份证人像面</view>
 					<view class="upload-box" @click="chooseImage('idCardFront')">
-						<image v-if="formData.images.idCardFront" :src="formData.images.idCardFront" mode="aspectFit" class="preview-img"></image>
+						<image v-if="formData.images.idCardFront" :src="formData.images.idCardFront" mode="aspectFit"
+							class="preview-img"></image>
 						<view v-else class="placeholder">
 							<text class="camera-icon">📷</text>
 							<text class="text">点击上传人像面</text>
@@ -106,7 +106,8 @@
 				<view class="upload-card">
 					<view class="card-title">身份证国徽面</view>
 					<view class="upload-box" @click="chooseImage('idCardBack')">
-						<image v-if="formData.images.idCardBack" :src="formData.images.idCardBack" mode="aspectFit" class="preview-img"></image>
+						<image v-if="formData.images.idCardBack" :src="formData.images.idCardBack" mode="aspectFit"
+							class="preview-img"></image>
 						<view v-else class="placeholder">
 							<text class="camera-icon">📷</text>
 							<text class="text">点击上传国徽面</text>
@@ -116,12 +117,12 @@
 				</view>
 			</view>
 
-			<!-- 学生证上传 -->
-			<view v-if="formData.authType === 'student'">
+			<view v-if="formData.authType === 0">
 				<view class="upload-card">
 					<view class="card-title">学生证信息页</view>
 					<view class="upload-box" @click="chooseImage('studentCard')">
-						<image v-if="formData.images.studentCard" :src="formData.images.studentCard" mode="aspectFit" class="preview-img"></image>
+						<image v-if="formData.images.studentCard" :src="formData.images.studentCard" mode="aspectFit"
+							class="preview-img"></image>
 						<view v-else class="placeholder">
 							<text class="camera-icon">📷</text>
 							<text class="text">点击上传信息页</text>
@@ -144,7 +145,7 @@
 			</view>
 		</view>
 
-		<!-- 步骤 4: 等待审核 (Loading) -->
+		<!-- 步骤 4: 等待审核 -->
 		<view class="step-content status-page" v-if="currentStep === 4">
 			<view class="loading-spinner"></view>
 			<text class="status-title">正在提交审核...</text>
@@ -153,7 +154,6 @@
 
 		<!-- 步骤 5: 审核结果 -->
 		<view class="step-content status-page" v-if="currentStep === 5">
-			<!-- 审核通过 -->
 			<view v-if="auditStatus === 'approved'" class="result-box success">
 				<view class="result-icon">✓</view>
 				<text class="result-title">认证通过</text>
@@ -164,7 +164,7 @@
 					</view>
 					<view class="info-row">
 						<text class="label">认证方式：</text>
-						<text class="value">{{ formData.authType === 'idcard' ? '身份证认证' : '学生证认证' }}</text>
+						<text class="value">{{ formData.authType === 0 ? '身份证认证' : '学生证认证' }}</text>
 					</view>
 					<view class="info-row">
 						<text class="label">有效期至：</text>
@@ -174,15 +174,13 @@
 				<button class="action-btn" @click="goHome">返回首页</button>
 			</view>
 
-			<!-- 审核驳回 -->
 			<view v-if="auditStatus === 'rejected'" class="result-box fail">
 				<view class="result-icon">✕</view>
 				<text class="result-title">审核驳回</text>
-				<text class="result-reason">驳回原因：证件照片模糊，无法识别信息</text>
+				<text class="result-reason">驳回原因：{{ rejectReason }}</text>
 				<button class="action-btn" @click="reVerify">重新认证</button>
 			</view>
 
-			<!-- 审核中 (模拟状态，实际提交后可能直接跳转或显示此状态) -->
 			<view v-if="auditStatus === 'pending'" class="result-box pending">
 				<view class="result-icon">⏳</view>
 				<text class="result-title">等待审核</text>
@@ -193,92 +191,201 @@
 	</view>
 </template>
 
-<script>
-export default {
-	data() {
-		return {
-			currentStep: 1,
-			auditStatus: '', // pending, approved, rejected
-			formData: {
-				realName: '',
-				phone: '',
-				authType: 'idcard', // idcard, student
-				images: {
-					idCardFront: '',
-					idCardBack: '',
-					studentCard: ''
-				}
+<script setup>
+import { ref, reactive } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
+import { authenticate, getVerificationStatus } from '@/utils/api.js'
+import { getUserInfo, setUserInfo } from '@/utils/storage.js'
+
+const currentStep = ref(1)
+const auditStatus = ref('')
+const rejectReason = ref('')
+const isLoading = ref(true)
+const currentAuthId = ref(0)  // 当前认证记录的ID
+const formData = reactive({
+	realName: '',
+	code: '',
+	authType: 1,//0-学生证认证，1-身份证认证
+	images: {
+		idCardFront: '',
+		idCardBack: '',
+		studentCard: ''
+	}
+})
+
+// 页面显示时：查询当前认证状态
+onShow(async () => {
+	const user = getUserInfo()
+	if (!user || !user.id) {
+		currentStep.value = 1
+		isLoading.value = false
+		return
+	}
+
+	isLoading.value = true
+	try {
+		const res = await getVerificationStatus()
+		if (res.code === 200) {
+			// 保存认证ID
+			currentAuthId.value = res.data.authId || 0
+
+			// 回填表单数据
+			if (res.data.realName) formData.realName = res.data.realName
+			if (res.data.code) formData.code = res.data.code
+			// if (res.data.cardType !== undefined && res.data.cardType !== null) {
+			// 	formData.authType = res.data.cardType === 1 ? 1 : 0
+			// }
+			if (res.data.idCardFront) formData.images.idCardFront = res.data.idCardFront
+			if (res.data.idCardBack) formData.images.idCardBack = res.data.idCardBack
+			if (res.data.studentCard) formData.images.studentCard = res.data.studentCard
+
+			const verifyStatus = res.data.verifyStatus
+
+			if (verifyStatus === 2) {
+				// 已认证：直接显示认证成功页面
+				currentStep.value = 5
+				auditStatus.value = 'approved'
+			} else if (verifyStatus === 1) {
+				// 待审核：显示等待审核
+				currentStep.value = 5
+				auditStatus.value = 'pending'
+			} else if (verifyStatus === 3) {
+				// 审核驳回：显示驳回原因，可重新认证
+				currentStep.value = 5
+				auditStatus.value = 'rejected'
+				rejectReason.value = res.data.auditRemark
+			} else {
+				// 未认证：显示填写表单
+				currentStep.value = 1
 			}
 		}
-	},
-	methods: {
-		nextStep() {
-			if (this.currentStep === 1) {
-				if (!this.formData.realName || !this.formData.phone) {
-					uni.showToast({ title: '请填写完整信息', icon: 'none' })
-					return
-				}
-				if (!/^1[3-9]\d{9}$/.test(this.formData.phone)) {
-					uni.showToast({ title: '手机号格式不正确', icon: 'none' })
-					return
-				}
-			}
-			if (this.currentStep < 3) {
-				this.currentStep++
-			}
-		},
-		prevStep() {
-			if (this.currentStep > 1) {
-				this.currentStep--
-			}
-		},
-		selectType(type) {
-			this.formData.authType = type
-		},
-		chooseImage(key) {
-			uni.chooseImage({
-				count: 1,
-				sizeType: ['compressed'],
-				success: (res) => {
-					const tempFilePath = res.tempFilePaths[0]
-					// 模拟大小检查 (实际应读取文件信息)
-					// if (res.tempFiles[0].size > 5 * 1024 * 1024) { ... }
-					
-					this.formData.images[key] = tempFilePath
-				}
-			})
-		},
-		submit() {
-			// 验证图片是否上传
-			if (this.formData.authType === 'idcard') {
-				if (!this.formData.images.idCardFront || !this.formData.images.idCardBack) {
-					uni.showToast({ title: '请上传身份证正反面', icon: 'none' })
-					return
-				}
-			} else {
-				if (!this.formData.images.studentCard) {
-					uni.showToast({ title: '请上传学生证照片', icon: 'none' })
-					return
-				}
-			}
+	} catch (e) {
+		console.error('获取认证状态失败', e)
+		currentStep.value = 1
+	} finally {
+		isLoading.value = false
+	}
+})
 
-			this.currentStep = 4 // 进入 loading 状态
-			
-			// 模拟提交审核
-			setTimeout(() => {
-				this.currentStep = 5
-				// 模拟随机结果：80% 通过，20% 驳回
-				this.auditStatus = Math.random() > 0.2 ? 'approved' : 'rejected'
-			}, 2000)
-		},
-		reVerify() {
-			this.currentStep = 1
-			this.auditStatus = ''
-		},
-		goHome() {
-			uni.switchTab({ url: '/pages/home/home' })
+const nextStep = () => {
+	if (currentStep.value === 1) {
+		if (!formData.realName || !formData.code) {
+			uni.showToast({ title: '请填写完整信息', icon: 'none' })
+			return
+		}
+		// if (!/^\d{17}[\dXx]$/.test(formData.idCardNumber)) {
+		// 	uni.showToast({ title: '证件号码格式不正确', icon: 'none' })
+		// 	return
+		// }
+	}
+	if (currentStep.value < 3) {
+		currentStep.value++
+	}
+}
+
+const prevStep = () => {
+	if (currentStep.value > 1) {
+		currentStep.value--
+	}
+}
+
+const selectType = (type) => {
+	formData.authType = type
+}
+
+const chooseImage = (key) => {
+	uni.chooseImage({
+		count: 1,
+		sizeType: ['compressed'],
+		success: async (res) => {
+			const tempFilePath = res.tempFilePaths[0]
+			// 转换为Base64
+			try {
+				const base64 = await fileToBase64(tempFilePath)
+				formData.images[key] = base64
+				uni.showToast({ title: '上传成功', icon: 'success' })
+			} catch (e) {
+				console.error('图片转换失败', e)
+				uni.showToast({ title: '图片处理失败', icon: 'none' })
+			}
+		}
+	})
+}
+
+// 将文件路径转换为Base64
+const fileToBase64 = (filePath) => {
+	return new Promise((resolve, reject) => {
+		uni.getFileSystemManager().readFile({
+			filePath: filePath,
+			encoding: 'base64',
+			success: (res) => {
+				resolve('data:image/jpeg;base64,' + res.data)
+			},
+			fail: (err) => {
+				reject(err)
+			}
+		})
+	})
+}
+
+const submit = async () => {
+	if (formData.authType === 1) {
+		if (!formData.images.idCardFront || !formData.images.idCardBack) {
+			uni.showToast({ title: '请上传身份证正反面', icon: 'none' })
+			return
+		}
+	} else {
+		if (!formData.images.studentCard) {
+			uni.showToast({ title: '请上传学生证照片', icon: 'none' })
+			return
 		}
 	}
+
+	currentStep.value = 4 // loading 状态
+	uni.showLoading({ title: '提交中...' })
+
+	try {
+		// 直接提交Base64图片数据
+		const res = await authenticate({
+			cardType: formData.authType,
+			realName: formData.realName,
+			code: formData.code,
+			idCardFront: formData.images.idCardFront,
+			idCardBack: formData.images.idCardBack,
+			studentCard: formData.images.studentCard
+		})
+		uni.hideLoading()
+
+		if (res.code === 200) {
+			// 同步更新本地存储的认证状态为待审核
+			const user = getUserInfo() || {}
+			user.verifyStatus = 1 // 1-待审核
+			setUserInfo(user)
+
+			currentStep.value = 5
+			auditStatus.value = 'pending'
+			// 重新获取状态，回显提交的信息
+			getVerificationStatus()
+		} else {
+			uni.showToast({ title: res.message || '提交失败', icon: 'none' })
+			currentStep.value = 3 // 回退到上一步
+		}
+	} catch (e) {
+		uni.hideLoading()
+		console.error('提交认证失败', e)
+		uni.showToast({ title: '提交失败，请重试', icon: 'none' })
+		currentStep.value = 3
+	}
+}
+
+const reVerify = () => {
+	currentStep.value = 1
+	auditStatus.value = ''
+	rejectReason.value = ''
+}
+
+const goHome = () => {
+	uni.switchTab({ url: '/pages/index/index' })
 }
 </script>
 
@@ -289,7 +396,6 @@ export default {
 	min-height: 100vh;
 }
 
-/* 步骤条 */
 .steps-box {
 	display: flex;
 	align-items: center;
@@ -347,8 +453,8 @@ export default {
 	background: #667eea;
 }
 
-/* 通用按钮 */
-.next-btn, .action-btn {
+.next-btn,
+.action-btn {
 	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 	color: #fff;
 	border-radius: 50rpx;
@@ -373,7 +479,6 @@ export default {
 	flex: 1;
 }
 
-/* 步骤 1 */
 .form-card {
 	background: #fff;
 	border-radius: 20rpx;
@@ -429,7 +534,6 @@ export default {
 	margin-right: 10rpx;
 }
 
-/* 步骤 2 */
 .method-card {
 	background: #fff;
 	border-radius: 20rpx;
@@ -491,7 +595,6 @@ export default {
 	margin-top: 20rpx;
 }
 
-/* 步骤 3 */
 .upload-card {
 	background: #fff;
 	border-radius: 20rpx;
@@ -544,7 +647,7 @@ export default {
 	bottom: 0;
 	left: 0;
 	width: 100%;
-	background: rgba(0,0,0,0.5);
+	background: rgba(0, 0, 0, 0.5);
 	color: #fff;
 	font-size: 24rpx;
 	text-align: center;
@@ -589,7 +692,6 @@ export default {
 	margin-bottom: 30rpx;
 }
 
-/* 步骤 4 & 5 */
 .status-page {
 	display: flex;
 	flex-direction: column;
@@ -608,8 +710,13 @@ export default {
 }
 
 @keyframes spin {
-	0% { transform: rotate(0deg); }
-	100% { transform: rotate(360deg); }
+	0% {
+		transform: rotate(0deg);
+	}
+
+	100% {
+		transform: rotate(360deg);
+	}
 }
 
 .status-title {

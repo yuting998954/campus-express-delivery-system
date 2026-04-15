@@ -61,3 +61,123 @@ export function getUserInfo() {
 export function publishTask(data) {
   return request("/orders/createOrder", "POST", data);
 }
+// 身份认证接口
+export function authenticate(data) {
+  return request("/auth/submit", "POST", data);
+}
+
+// 获取认证信息
+export function getVerificationStatus() {
+  return request("/auth/status", "GET", );
+}
+// 头像上传
+export function uploadAvatar(data) {
+  return request( '/user/avatar', "POST",data)
+}
+// 上传文件到服务器
+export function uploadFile(tempFilePath, userId, type) {
+  return new Promise((resolve, reject) => {
+    let url = BASE_URL + '/file/upload';
+    if (userId && type) {
+      url = BASE_URL + '/file/upload/' + userId + '/' + type;
+    }
+    uni.uploadFile({
+      url: url,
+      filePath: tempFilePath,
+      name: 'file',
+      header: {
+        Authorization: uni.getStorageSync("token")
+          ? `Bearer ${uni.getStorageSync("token")}`
+          : "",
+      },
+      success: (res) => {
+        if (res.statusCode === 200) {
+          const data = JSON.parse(res.data);
+          if (data.code === 200) {
+            resolve(data);
+          } else {
+            reject(data);
+          }
+        } else {
+          reject(res);
+        }
+      },
+      fail: (err) => {
+        reject(err);
+      },
+    });
+  });
+}
+
+// ========== 订单相关接口 ==========
+
+// 获取接单大厅订单列表
+export function getPickupHall(query) {
+  return request("/orders/hall", "GET", query);
+}
+
+// 代取员接单
+export function acceptOrder(orderId) {
+  return request("/orders/" + orderId + "/accept", "POST");
+}
+
+// 获取我的订单列表
+export function getMyOrders(role, status) {
+  const params = { role };
+  if (status !== undefined && status !== null && status !== '') {
+    params.status = status;
+  }
+  return request("/orders/my", "GET", params);
+}
+
+// 获取订单详情
+export function getOrderDetail(orderId) {
+  return request("/orders/" + orderId, "GET");
+}
+
+// 取消订单
+export function cancelOrderApi(orderId) {
+  return request("/orders/" + orderId + "/cancel", "POST");
+}
+
+// 确认收货
+export function confirmReceiptApi(orderId) {
+  return request("/order/confirm?orderId=" + orderId, "PUT");
+}
+
+// 代取员上报订单进度
+export function reportProgress(orderId, progressStatus, proofImagePath) {
+  return request("/orders/progress", "PUT", { orderId, progressStatus, proofImagePath });
+}
+
+// 提交订单评价
+export function submitEvaluation(data) {
+  return request("/eval/submit", "POST", data);
+}
+
+// ========== 消息相关接口 ==========
+
+// 获取未读消息数量
+export function getUnreadMessageCount() {
+  return request("/messages/unread/count", "GET");
+}
+
+// 获取消息列表
+export function getMessageList(page = 1, pageSize = 20) {
+  return request("/messages/list", "GET", { page, pageSize });
+}
+
+// 获取消息详情
+export function getMessageDetail(messageId) {
+  return request("/messages/" + messageId, "GET");
+}
+
+// 标记消息为已读
+export function markMessageRead(messageId) {
+  return request("/messages/" + messageId + "/read", "PUT");
+}
+
+// 标记所有消息为已读
+export function markAllMessagesRead() {
+  return request("/messages/read/all", "PUT");
+}

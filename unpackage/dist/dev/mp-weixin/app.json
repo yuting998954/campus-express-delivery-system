@@ -13,7 +13,8 @@
     "pages/user/verify",
     "pages/payment/pay",
     "pages/login/login",
-    "pages/login/register"
+    "pages/login/register",
+    "pages/my/messages/messages"
   ],
   "window": {
     "navigationBarTextStyle": "black",

@@ -1,170 +1,258 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
+const utils_api = require("../../utils/api.js");
+const utils_storage = require("../../utils/storage.js");
 const _sfc_main = {
-  data() {
-    return {
-      currentStep: 1,
-      auditStatus: "",
-      // pending, approved, rejected
-      formData: {
-        realName: "",
-        phone: "",
-        authType: "idcard",
-        // idcard, student
-        images: {
-          idCardFront: "",
-          idCardBack: "",
-          studentCard: ""
-        }
+  __name: "verify",
+  setup(__props) {
+    const currentStep = common_vendor.ref(1);
+    const auditStatus = common_vendor.ref("");
+    const rejectReason = common_vendor.ref("");
+    const isLoading = common_vendor.ref(true);
+    const currentAuthId = common_vendor.ref(0);
+    const formData = common_vendor.reactive({
+      realName: "",
+      code: "",
+      authType: 1,
+      //0-学生证认证，1-身份证认证
+      images: {
+        idCardFront: "",
+        idCardBack: "",
+        studentCard: ""
       }
-    };
-  },
-  methods: {
-    nextStep() {
-      if (this.currentStep === 1) {
-        if (!this.formData.realName || !this.formData.phone) {
+    });
+    common_vendor.onShow(async () => {
+      const user = utils_storage.getUserInfo();
+      if (!user || !user.id) {
+        currentStep.value = 1;
+        isLoading.value = false;
+        return;
+      }
+      isLoading.value = true;
+      try {
+        const res = await utils_api.getVerificationStatus();
+        if (res.code === 200) {
+          currentAuthId.value = res.data.authId || 0;
+          if (res.data.realName)
+            formData.realName = res.data.realName;
+          if (res.data.code)
+            formData.code = res.data.code;
+          if (res.data.idCardFront)
+            formData.images.idCardFront = res.data.idCardFront;
+          if (res.data.idCardBack)
+            formData.images.idCardBack = res.data.idCardBack;
+          if (res.data.studentCard)
+            formData.images.studentCard = res.data.studentCard;
+          const verifyStatus = res.data.verifyStatus;
+          if (verifyStatus === 2) {
+            currentStep.value = 5;
+            auditStatus.value = "approved";
+          } else if (verifyStatus === 1) {
+            currentStep.value = 5;
+            auditStatus.value = "pending";
+          } else if (verifyStatus === 3) {
+            currentStep.value = 5;
+            auditStatus.value = "rejected";
+            rejectReason.value = res.data.auditRemark;
+          } else {
+            currentStep.value = 1;
+          }
+        }
+      } catch (e) {
+        common_vendor.index.__f__("error", "at pages/user/verify.vue:263", "获取认证状态失败", e);
+        currentStep.value = 1;
+      } finally {
+        isLoading.value = false;
+      }
+    });
+    const nextStep = () => {
+      if (currentStep.value === 1) {
+        if (!formData.realName || !formData.code) {
           common_vendor.index.showToast({ title: "请填写完整信息", icon: "none" });
           return;
         }
-        if (!/^1[3-9]\d{9}$/.test(this.formData.phone)) {
-          common_vendor.index.showToast({ title: "手机号格式不正确", icon: "none" });
-          return;
-        }
       }
-      if (this.currentStep < 3) {
-        this.currentStep++;
+      if (currentStep.value < 3) {
+        currentStep.value++;
       }
-    },
-    prevStep() {
-      if (this.currentStep > 1) {
-        this.currentStep--;
+    };
+    const prevStep = () => {
+      if (currentStep.value > 1) {
+        currentStep.value--;
       }
-    },
-    selectType(type) {
-      this.formData.authType = type;
-    },
-    chooseImage(key) {
+    };
+    const selectType = (type) => {
+      formData.authType = type;
+    };
+    const chooseImage = (key) => {
       common_vendor.index.chooseImage({
         count: 1,
         sizeType: ["compressed"],
-        success: (res) => {
+        success: async (res) => {
           const tempFilePath = res.tempFilePaths[0];
-          this.formData.images[key] = tempFilePath;
+          try {
+            const base64 = await fileToBase64(tempFilePath);
+            formData.images[key] = base64;
+            common_vendor.index.showToast({ title: "上传成功", icon: "success" });
+          } catch (e) {
+            common_vendor.index.__f__("error", "at pages/user/verify.vue:308", "图片转换失败", e);
+            common_vendor.index.showToast({ title: "图片处理失败", icon: "none" });
+          }
         }
       });
-    },
-    submit() {
-      if (this.formData.authType === "idcard") {
-        if (!this.formData.images.idCardFront || !this.formData.images.idCardBack) {
+    };
+    const fileToBase64 = (filePath) => {
+      return new Promise((resolve, reject) => {
+        common_vendor.index.getFileSystemManager().readFile({
+          filePath,
+          encoding: "base64",
+          success: (res) => {
+            resolve("data:image/jpeg;base64," + res.data);
+          },
+          fail: (err) => {
+            reject(err);
+          }
+        });
+      });
+    };
+    const submit = async () => {
+      if (formData.authType === 1) {
+        if (!formData.images.idCardFront || !formData.images.idCardBack) {
           common_vendor.index.showToast({ title: "请上传身份证正反面", icon: "none" });
           return;
         }
       } else {
-        if (!this.formData.images.studentCard) {
+        if (!formData.images.studentCard) {
           common_vendor.index.showToast({ title: "请上传学生证照片", icon: "none" });
           return;
         }
       }
-      this.currentStep = 4;
-      setTimeout(() => {
-        this.currentStep = 5;
-        this.auditStatus = Math.random() > 0.2 ? "approved" : "rejected";
-      }, 2e3);
-    },
-    reVerify() {
-      this.currentStep = 1;
-      this.auditStatus = "";
-    },
-    goHome() {
-      common_vendor.index.switchTab({ url: "/pages/home/home" });
-    }
+      currentStep.value = 4;
+      common_vendor.index.showLoading({ title: "提交中..." });
+      try {
+        const res = await utils_api.authenticate({
+          cardType: formData.authType,
+          realName: formData.realName,
+          code: formData.code,
+          idCardFront: formData.images.idCardFront,
+          idCardBack: formData.images.idCardBack,
+          studentCard: formData.images.studentCard
+        });
+        common_vendor.index.hideLoading();
+        if (res.code === 200) {
+          const user = utils_storage.getUserInfo() || {};
+          user.verifyStatus = 1;
+          utils_storage.setUserInfo(user);
+          currentStep.value = 5;
+          auditStatus.value = "pending";
+          utils_api.getVerificationStatus();
+        } else {
+          common_vendor.index.showToast({ title: res.message || "提交失败", icon: "none" });
+          currentStep.value = 3;
+        }
+      } catch (e) {
+        common_vendor.index.hideLoading();
+        common_vendor.index.__f__("error", "at pages/user/verify.vue:375", "提交认证失败", e);
+        common_vendor.index.showToast({ title: "提交失败，请重试", icon: "none" });
+        currentStep.value = 3;
+      }
+    };
+    const reVerify = () => {
+      currentStep.value = 1;
+      auditStatus.value = "";
+      rejectReason.value = "";
+    };
+    const goHome = () => {
+      common_vendor.index.switchTab({ url: "/pages/index/index" });
+    };
+    return (_ctx, _cache) => {
+      return common_vendor.e({
+        a: currentStep.value >= 1 ? 1 : "",
+        b: currentStep.value > 1 ? 1 : "",
+        c: currentStep.value > 1 ? 1 : "",
+        d: currentStep.value >= 2 ? 1 : "",
+        e: currentStep.value > 2 ? 1 : "",
+        f: currentStep.value > 2 ? 1 : "",
+        g: currentStep.value >= 3 ? 1 : "",
+        h: currentStep.value > 3 ? 1 : "",
+        i: currentStep.value > 3 ? 1 : "",
+        j: currentStep.value >= 4 ? 1 : "",
+        k: currentStep.value > 4 ? 1 : "",
+        l: currentStep.value === 1
+      }, currentStep.value === 1 ? {
+        m: formData.realName,
+        n: common_vendor.o(($event) => formData.realName = $event.detail.value),
+        o: formData.code,
+        p: common_vendor.o(($event) => formData.code = $event.detail.value),
+        q: common_vendor.o(nextStep)
+      } : {}, {
+        r: currentStep.value === 2
+      }, currentStep.value === 2 ? common_vendor.e({
+        s: formData.authType === 1
+      }, formData.authType === 1 ? {} : {}, {
+        t: formData.authType === 1 ? 1 : "",
+        v: common_vendor.o(($event) => selectType(1)),
+        w: formData.authType === 0
+      }, formData.authType === 0 ? {} : {}, {
+        x: formData.authType === 0 ? 1 : "",
+        y: common_vendor.o(($event) => selectType(0)),
+        z: common_vendor.o(prevStep),
+        A: common_vendor.o(nextStep)
+      }) : {}, {
+        B: currentStep.value === 3
+      }, currentStep.value === 3 ? common_vendor.e({
+        C: formData.authType === 1
+      }, formData.authType === 1 ? common_vendor.e({
+        D: formData.images.idCardFront
+      }, formData.images.idCardFront ? {
+        E: formData.images.idCardFront
+      } : {}, {
+        F: formData.images.idCardFront
+      }, formData.images.idCardFront ? {} : {}, {
+        G: common_vendor.o(($event) => chooseImage("idCardFront")),
+        H: formData.images.idCardBack
+      }, formData.images.idCardBack ? {
+        I: formData.images.idCardBack
+      } : {}, {
+        J: formData.images.idCardBack
+      }, formData.images.idCardBack ? {} : {}, {
+        K: common_vendor.o(($event) => chooseImage("idCardBack"))
+      }) : {}, {
+        L: formData.authType === 0
+      }, formData.authType === 0 ? common_vendor.e({
+        M: formData.images.studentCard
+      }, formData.images.studentCard ? {
+        N: formData.images.studentCard
+      } : {}, {
+        O: formData.images.studentCard
+      }, formData.images.studentCard ? {} : {}, {
+        P: common_vendor.o(($event) => chooseImage("studentCard"))
+      }) : {}, {
+        Q: common_vendor.o(prevStep),
+        R: common_vendor.o(submit)
+      }) : {}, {
+        S: currentStep.value === 4
+      }, currentStep.value === 4 ? {} : {}, {
+        T: currentStep.value === 5
+      }, currentStep.value === 5 ? common_vendor.e({
+        U: auditStatus.value === "approved"
+      }, auditStatus.value === "approved" ? {
+        V: common_vendor.t(formData.realName),
+        W: common_vendor.t(formData.authType === 0 ? "身份证认证" : "学生证认证"),
+        X: common_vendor.o(goHome)
+      } : {}, {
+        Y: auditStatus.value === "rejected"
+      }, auditStatus.value === "rejected" ? {
+        Z: common_vendor.t(rejectReason.value),
+        aa: common_vendor.o(reVerify)
+      } : {}, {
+        ab: auditStatus.value === "pending"
+      }, auditStatus.value === "pending" ? {
+        ac: common_vendor.o(goHome)
+      } : {}) : {});
+    };
   }
 };
-function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
-  return common_vendor.e({
-    a: $data.currentStep >= 1 ? 1 : "",
-    b: $data.currentStep > 1 ? 1 : "",
-    c: $data.currentStep > 1 ? 1 : "",
-    d: $data.currentStep >= 2 ? 1 : "",
-    e: $data.currentStep > 2 ? 1 : "",
-    f: $data.currentStep > 2 ? 1 : "",
-    g: $data.currentStep >= 3 ? 1 : "",
-    h: $data.currentStep > 3 ? 1 : "",
-    i: $data.currentStep > 3 ? 1 : "",
-    j: $data.currentStep >= 4 ? 1 : "",
-    k: $data.currentStep > 4 ? 1 : "",
-    l: $data.currentStep === 1
-  }, $data.currentStep === 1 ? {
-    m: $data.formData.realName,
-    n: common_vendor.o(($event) => $data.formData.realName = $event.detail.value),
-    o: $data.formData.phone,
-    p: common_vendor.o(($event) => $data.formData.phone = $event.detail.value),
-    q: common_vendor.o((...args) => $options.nextStep && $options.nextStep(...args))
-  } : {}, {
-    r: $data.currentStep === 2
-  }, $data.currentStep === 2 ? common_vendor.e({
-    s: $data.formData.authType === "idcard"
-  }, $data.formData.authType === "idcard" ? {} : {}, {
-    t: $data.formData.authType === "idcard" ? 1 : "",
-    v: common_vendor.o(($event) => $options.selectType("idcard")),
-    w: $data.formData.authType === "student"
-  }, $data.formData.authType === "student" ? {} : {}, {
-    x: $data.formData.authType === "student" ? 1 : "",
-    y: common_vendor.o(($event) => $options.selectType("student")),
-    z: common_vendor.o((...args) => $options.prevStep && $options.prevStep(...args)),
-    A: common_vendor.o((...args) => $options.nextStep && $options.nextStep(...args))
-  }) : {}, {
-    B: $data.currentStep === 3
-  }, $data.currentStep === 3 ? common_vendor.e({
-    C: $data.formData.authType === "idcard"
-  }, $data.formData.authType === "idcard" ? common_vendor.e({
-    D: $data.formData.images.idCardFront
-  }, $data.formData.images.idCardFront ? {
-    E: $data.formData.images.idCardFront
-  } : {}, {
-    F: $data.formData.images.idCardFront
-  }, $data.formData.images.idCardFront ? {} : {}, {
-    G: common_vendor.o(($event) => $options.chooseImage("idCardFront")),
-    H: $data.formData.images.idCardBack
-  }, $data.formData.images.idCardBack ? {
-    I: $data.formData.images.idCardBack
-  } : {}, {
-    J: $data.formData.images.idCardBack
-  }, $data.formData.images.idCardBack ? {} : {}, {
-    K: common_vendor.o(($event) => $options.chooseImage("idCardBack"))
-  }) : {}, {
-    L: $data.formData.authType === "student"
-  }, $data.formData.authType === "student" ? common_vendor.e({
-    M: $data.formData.images.studentCard
-  }, $data.formData.images.studentCard ? {
-    N: $data.formData.images.studentCard
-  } : {}, {
-    O: $data.formData.images.studentCard
-  }, $data.formData.images.studentCard ? {} : {}, {
-    P: common_vendor.o(($event) => $options.chooseImage("studentCard"))
-  }) : {}, {
-    Q: common_vendor.o((...args) => $options.prevStep && $options.prevStep(...args)),
-    R: common_vendor.o((...args) => $options.submit && $options.submit(...args))
-  }) : {}, {
-    S: $data.currentStep === 4
-  }, $data.currentStep === 4 ? {} : {}, {
-    T: $data.currentStep === 5
-  }, $data.currentStep === 5 ? common_vendor.e({
-    U: $data.auditStatus === "approved"
-  }, $data.auditStatus === "approved" ? {
-    V: common_vendor.t($data.formData.realName),
-    W: common_vendor.t($data.formData.authType === "idcard" ? "身份证认证" : "学生证认证"),
-    X: common_vendor.o((...args) => $options.goHome && $options.goHome(...args))
-  } : {}, {
-    Y: $data.auditStatus === "rejected"
-  }, $data.auditStatus === "rejected" ? {
-    Z: common_vendor.o((...args) => $options.reVerify && $options.reVerify(...args))
-  } : {}, {
-    aa: $data.auditStatus === "pending"
-  }, $data.auditStatus === "pending" ? {
-    ab: common_vendor.o((...args) => $options.goHome && $options.goHome(...args))
-  } : {}) : {});
-}
-const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-71a5fc89"]]);
+const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__scopeId", "data-v-71a5fc89"]]);
 wx.createPage(MiniProgramPage);
 //# sourceMappingURL=../../../.sourcemap/mp-weixin/pages/user/verify.js.map

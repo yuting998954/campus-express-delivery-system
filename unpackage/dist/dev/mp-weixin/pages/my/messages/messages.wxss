@@ -1,0 +1,102 @@
+
+.container.data-v-7562a05b {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	background-color: #f8f8f8;
+}
+.header-bar.data-v-7562a05b {
+	display: flex;
+	justify-content: flex-end;
+	padding: 20rpx 30rpx;
+	background-color: #fff;
+	border-bottom: 1rpx solid #f0f0f0;
+}
+.mark-read.data-v-7562a05b {
+	font-size: 26rpx;
+	color: #667eea;
+}
+.message-list.data-v-7562a05b {
+	flex: 1;
+	padding: 20rpx 30rpx;
+}
+.message-card.data-v-7562a05b {
+	background-color: #fff;
+	border-radius: 16rpx;
+	padding: 30rpx;
+	margin-bottom: 20rpx;
+	box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.03);
+	position: relative;
+}
+.message-card.unread.data-v-7562a05b {
+	border-left: 6rpx solid #667eea;
+}
+.message-header.data-v-7562a05b {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 16rpx;
+}
+.message-type.data-v-7562a05b {
+	display: flex;
+	align-items: center;
+	gap: 10rpx;
+}
+.type-icon.data-v-7562a05b {
+	font-size: 32rpx;
+}
+.type-text.data-v-7562a05b {
+	font-size: 24rpx;
+	color: #667eea;
+	font-weight: bold;
+}
+.message-time.data-v-7562a05b {
+	font-size: 22rpx;
+	color: #999;
+}
+.message-title.data-v-7562a05b {
+	font-size: 30rpx;
+	font-weight: bold;
+	color: #333;
+	margin-bottom: 12rpx;
+}
+.message-content.data-v-7562a05b {
+	font-size: 26rpx;
+	color: #666;
+	line-height: 1.6;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+.unread-dot.data-v-7562a05b {
+	position: absolute;
+	top: 30rpx;
+	right: 30rpx;
+	width: 16rpx;
+	height: 16rpx;
+	background-color: #ff4d4f;
+	border-radius: 50%;
+}
+.loading-more.data-v-7562a05b {
+	text-align: center;
+	padding: 30rpx;
+	color: #999;
+	font-size: 24rpx;
+}
+.empty-state.data-v-7562a05b {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding-top: 200rpx;
+}
+.empty-icon.data-v-7562a05b {
+	font-size: 100rpx;
+	margin-bottom: 30rpx;
+	opacity: 0.5;
+}
+.empty-text.data-v-7562a05b {
+	font-size: 28rpx;
+	color: #999;
+}

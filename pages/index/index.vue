@@ -1,6 +1,5 @@
 <template>
 	<view class="container">
-		<!-- 顶部背景 -->
 		<view class="header-bg">
 			<view class="user-info">
 				<view class="avatar-box">
@@ -14,14 +13,12 @@
 			</view>
 		</view>
 
-		<!-- 主要功能区 -->
 		<view class="main-card">
 			<view class="card-header">
 				<text class="card-title">核心服务</text>
 			</view>
 
 			<view class="action-area">
-				<!-- 普通用户入口 -->
 				<view class="action-btn publish-btn" @click="goPublish">
 					<view class="icon-circle">
 						<text class="iconfont">📤</text>
@@ -30,7 +27,6 @@
 					<text class="btn-desc">我是雇主</text>
 				</view>
 
-				<!-- 代取员入口 -->
 				<view class="action-btn pickup-btn" @click="goPickup">
 					<view class="icon-circle">
 						<text class="iconfont">🛵</text>
@@ -41,7 +37,6 @@
 			</view>
 		</view>
 
-		<!-- 常用功能 -->
 		<view class="grid-card">
 			<view class="card-header">
 				<text class="card-title">常用功能</text>
@@ -49,7 +44,7 @@
 			<view class="grid-box">
 				<view class="grid-item" @click="goOrders">
 					<text class="grid-icon">📦</text>
-					<text class="grid-text">我的订单</text>
+					<text class="grid-text">{{ userInfo.role === 0 ? '我的订单' : '我的承接' }}</text>
 				</view>
 				<view class="grid-item" @click="goEarnings">
 					<text class="grid-icon">💰</text>
@@ -68,68 +63,80 @@
 	</view>
 </template>
 
-<script>
+<script setup>
+import { ref } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { getUserInfo } from '@/utils/storage.js'
 
-export default {
-	data() {
-		return {
-			userInfo: {}
-		}
-	},
-	onShow() {
-		this.loadUserInfo()
-	},
-	methods: {
-		loadUserInfo() {
-			const info = getUserInfo()
-			if (info) {
-				this.userInfo = info
-			} else {
-				this.userInfo = null
-			}
-			console.log(info);
-		},
-		goLogin() {
-			uni.navigateTo({ url: '/pages/login/login' })
-		},
-		// 普通用户发布代取
-		goPublish() {
-			if (!this.userInfo) {
-				uni.showToast({ title: '请先登录', icon: 'none' })
-				return
-			}
-			if (this.userInfo.role !== 0) {
-				uni.showToast({ title: '请使用普通用户账号登录', icon: 'none' })
-				return
-			}
-			uni.navigateTo({ url: '/pages/publish/index' })
-		},
-		// 代取员接单大厅
-		goPickup() {
-			if (!this.userInfo) {
-				uni.showToast({ title: '请先登录', icon: 'none' })
-				return
-			}
-			if (this.userInfo.role !== 1) {
-				uni.showToast({ title: '请使用代取员账号登录', icon: 'none' })
-				return
-			}
-			uni.navigateTo({ url: '/pages/pickup/hall' })
-		},
-		goOrders() {
-			uni.switchTab({ url: '/pages/user/orders' })
-		},
-		goEarnings() {
-			uni.navigateTo({ url: '/pages/pickup/earnings' })
-		},
-		goAddress() {
-			uni.showToast({ title: '功能开发中', icon: 'none' })
-		},
-		goHelp() {
-			uni.showToast({ title: '功能开发中', icon: 'none' })
-		}
+const userInfo = ref({})
+
+onShow(() => {
+	loadUserInfo()
+})
+
+const loadUserInfo = () => {
+	const info = getUserInfo()
+	if (info) {
+		userInfo.value = info
+	} else {
+		userInfo.value = null
 	}
+}
+
+const goLogin = () => {
+	uni.navigateTo({ url: '/pages/login/login' })
+}
+
+const goPublish = () => {
+	if (!userInfo.value) {
+		uni.showToast({ title: '请先登录', icon: 'none', duration: 1500 })
+		goLogin()
+		return
+	}
+	if (userInfo.value.role !== 0) {
+		uni.showToast({ title: '请使用普通用户账号登录', icon: 'none' })
+		return
+	}
+	uni.navigateTo({ url: '/pages/publish/index' })
+}
+
+const goPickup = () => {
+	if (!userInfo.value) {
+		uni.showToast({ title: '请先登录', icon: 'none' })
+		goLogin()
+		return
+	}
+	if (userInfo.value.role !== 1) {
+		uni.showToast({ title: '请使用代取员账号登录', icon: 'none' })
+		return
+	}
+	uni.navigateTo({ url: '/pages/pickup/hall' })
+}
+
+const goOrders = () => {
+	if (!userInfo.value) {
+		uni.showToast({ title: '请先登录', icon: 'none' })
+		goLogin()
+		return
+	}
+	uni.switchTab({ url: '/pages/user/orders' })
+}
+
+const goEarnings = () => {
+	if (!userInfo.value) {
+		uni.showToast({ title: '请先登录', icon: 'none' })
+		goLogin()
+		return
+	}
+	uni.navigateTo({ url: '/pages/pickup/earnings' })
+}
+
+const goAddress = () => {
+	uni.showToast({ title: '功能开发中', icon: 'none' })
+}
+
+const goHelp = () => {
+	uni.showToast({ title: '功能开发中', icon: 'none' })
 }
 </script>
 

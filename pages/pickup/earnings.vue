@@ -7,14 +7,14 @@
 
 		<view class="list-title">收益明细</view>
 		<view class="earnings-list">
-			<view v-for="item in earningsList" :key="item.id" class="earnings-item" @tap="goToDetail(item.orderId)">
+			<view v-for="item in earningsList" :key="item.id" class="earnings-item" @click="goToDetail(item.orderId)">
 				<view class="item-main">
 					<view class="order-no">订单: {{item.orderNo}}</view>
 					<view class="time">{{item.time}}</view>
 				</view>
 				<view class="amount-box">
 					<view class="amount">+{{item.amount}}</view>
-					<button class="appeal-link" size="mini" plain @tap.stop="goToAppeal(item.orderId)">申诉</button>
+					<button class="appeal-link" size="mini" plain @click.stop="goToAppeal(item.orderId)">申诉</button>
 				</view>
 			</view>
 		</view>
@@ -24,44 +24,41 @@
 	</view>
 </template>
 
-<script>
-export default {
-	data() {
-		return {
-			totalEarnings: '128.50',
-			earningsList: [
-				{
-					id: 1,
-					orderId: 101,
-					orderNo: 'ORD20260114001',
-					time: '2026-01-14 11:20',
-					amount: '8.00'
-				},
-				{
-					id: 2,
-					orderId: 102,
-					orderNo: 'ORD20260114002',
-					time: '2026-01-13 18:45',
-					amount: '15.00'
-				},
-				{
-					id: 3,
-					orderId: 103,
-					orderNo: 'ORD20260113005',
-					time: '2026-01-13 14:10',
-					amount: '12.00'
-				}
-			]
-		}
-	},
-	methods: {
-		goToDetail(orderId) {
-			uni.navigateTo({ url: `/pages/user/order-detail?id=${orderId}` });
-		},
-		goToAppeal(orderId) {
-			uni.navigateTo({ url: `/pages/user/appeal?id=${orderId}&role=runner` });
-		}
-	}
+<script setup>
+import { ref } from 'vue'
+
+const totalEarnings = ref('128.50')
+
+const earningsList = ref([
+    {
+        id: 1,
+        orderId: 101,
+        orderNo: 'ORD20260114001',
+        time: '2026-01-14 11:20',
+        amount: '8.00'
+    },
+    {
+        id: 2,
+        orderId: 102,
+        orderNo: 'ORD20260114002',
+        time: '2026-01-13 18:45',
+        amount: '15.00'
+    },
+    {
+        id: 3,
+        orderId: 103,
+        orderNo: 'ORD20260113005',
+        time: '2026-01-13 14:10',
+        amount: '12.00'
+    }
+])
+
+const goToDetail = (orderId) => {
+    uni.navigateTo({ url: `/pages/user/order-detail?id=${orderId}` });
+}
+
+const goToAppeal = (orderId) => {
+    uni.navigateTo({ url: `/pages/user/appeal?id=${orderId}&role=runner` });
 }
 </script>
 

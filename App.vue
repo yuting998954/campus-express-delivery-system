@@ -1,34 +1,49 @@
-<script>
-	import { isLoggedIn } from '@/utils/storage.js'
-	
-	export default {
-		onLaunch: function() {
-			console.log('App Launch')
-			// 检查登录状态
-			this.checkLoginStatus()
-		},
-		onShow: function() {
-			console.log('App Show')
-		},
-		onHide: function() {
-			console.log('App Hide')
-		},
-		methods: {
-			checkLoginStatus() {
-				// 如果未登录，可以在这里做一些处理
-				// 注意：不要在onLaunch中直接跳转，因为此时页面可能还没准备好
-				// 可以在需要登录的页面的onLoad中检查
-			}
-		}
-	}
+<script setup>
+import { getToken, setUserInfo } from '@/utils/storage.js'
+import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
+
+onLaunch(() => {
+    console.log('App Launch')
+})
+
+onShow(() => {
+    console.log('App Show')
+    // 每次进入小程序时，刷新用户信息（防止管理员审核后状态未更新）
+    refreshUserInfo()
+})
+
+onHide(() => {
+    console.log('App Hide')
+})
+
+// 刷新用户信息
+const refreshUserInfo = async () => {
+    const token = getToken()
+    if (!token) return
+
+    try {
+        const res = await uni.request({
+            url: 'http://localhost:8081/api/user/info',
+            method: 'GET',
+            header: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        if (res.data && res.data.code === 200 && res.data.data) {
+            setUserInfo(res.data.data)
+            console.log('用户信息已刷新:', res.data.data)
+        }
+    } catch (e) {
+        console.error('刷新用户信息失败', e)
+    }
+}
 </script>
 
 <style>
-	/* 每个页面公共css */
-	page {
-		background-color: #f5f5f5;
-		font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica,
-			Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei',
-			sans-serif;
-	}
+page {
+    background-color: #f5f5f5;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica,
+        'Segoe UI', Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei',
+        sans-serif;
+}
 </style>

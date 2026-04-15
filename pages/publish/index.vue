@@ -77,7 +77,7 @@
 						<text class="icon">🚀</text>
 						<text>加急服务</text>
 					</view>
-					<switch :checked="formData.isUrgent" color="#667eea" @change="urgentChange"
+					<switch :checked="formData.urgent" color="#667eea" @change="urgentChange"
 						style="transform:scale(0.8)" />
 				</view>
 				<view class="urgent-info" v-if="formData.urgent">
@@ -107,83 +107,97 @@
 	</view>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, computed, onMounted } from 'vue'
 import { publishTask } from '@/utils/api';
-export default {
-	data() {
-		return {
-			formData: {
-				pickupCode: '',
-				quantity: 1,
-				weightType: 'light',
-				address: '',
-				expectedTime: '',
-				reward: '',
-				urgent: false,
-				notes: ''
-			},
-			weightOptions: [
-				{ label: '轻件 (<1kg)', value: 'light' },
-				{ label: '中件 (1-3kg)', value: 'medium' },
-				{ label: '重件 (>3kg)', value: 'heavy' }
-			],
-			timeRange: [[], []],
-			selectedTimeIndices: [0, 0]
-		}
-	},
-	computed: {
-		calculateTotal() {
-			let total = parseFloat(this.formData.reward) || 0;
-			if (this.formData.urgent) {
-				total += 5;
-			}
-			return total.toFixed(2);
-		}
-	},
-	onLoad() {
-		this.initTimeRange();
-	},
-	methods: {
-		initTimeRange() {
-			const dates = ['今天', '明天', '后天'];
-			const hours = [];
-			for (let i = 8; i <= 22; i++) {
-				hours.push(i + ':00');
-			}
-			this.timeRange = [dates, hours];
-		},
-		timeChange(e) {
-			const indices = e.detail.value;
-			this.formData.expectedTime = `${this.timeRange[0][indices[0]]} ${this.timeRange[1][indices[1]]}`;
-		},
-		timeColumnChange(e) {
-			// Handle column changes if needed
-		},
-		urgentChange(e) {
-			console.log(e.detail.value);
-			this.formData.urgent = e.detail.value;
-		},
-		async submitOrder() {
-			if (!this.formData.pickupCode || !this.formData.address || !this.formData.reward) {
-				uni.showToast({ title: '请填写完整信息', icon: 'none' });
-				return;
-			}
-			uni.showLoading({ title: '提交中...' });
-			console.log(this.formData, '1111');
+import { getUserInfo } from '@/utils/storage.js';
 
-			const res = await publishTask(this.formData);
-			console.log(res);
-			if (res.code == 200) {
-				uni.hideLoading();
-				uni.showToast({ title: '发布成功', icon: 'success' });
-				setTimeout(() => {
-					uni.switchTab({ url: '/pages/user/orders' });
-				}, 1500);
-			} else {
-				uni.hideLoading();
-				uni.showToast({ title: res.message, icon: 'none' });
+const formData = reactive({
+	pickupCode: '',
+	quantity: 1,
+	weightType: 'light',
+	address: '',
+	expectedTime: '',
+	reward: '',
+	urgent: 0,//是否加急：0-不加急，1-加急
+	notes: ''
+})
+
+const weightOptions = [
+	{ label: '轻件 (<1kg)', value: 'light' },
+	{ label: '中件 (1-3kg)', value: 'medium' },
+	{ label: '重件 (>3kg)', value: 'heavy' }
+]
+
+const timeRange = ref([[], []])
+
+const calculateTotal = computed(() => {
+	let total = parseFloat(formData.reward) || 0;
+	if (formData.urgent) {
+		total += 5;
+	}
+	return total.toFixed(2);
+})
+
+onMounted(() => {
+	initTimeRange();
+})
+
+const initTimeRange = () => {
+	const dates = ['今天', '明天', '后天'];
+	const hours = [];
+	for (let i = 8; i <= 22; i++) {
+		hours.push(i + ':00');
+	}
+	timeRange.value = [dates, hours];
+}
+
+const timeChange = (e) => {
+	const indices = e.detail.value;
+	formData.expectedTime = `${timeRange.value[0][indices[0]]} ${timeRange.value[1][indices[1]]}`;
+}
+
+const timeColumnChange = (e) => {
+	// Handle column changes if needed
+}
+
+const urgentChange = (e) => {
+	formData.urgent = Number(e.detail.value);
+}
+
+const submitOrder = async () => {
+	// 检查认证状态（只有代取员需要认证）
+	const userInfo = getUserInfo()
+	if (userInfo && userInfo.role === 1 && userInfo.verifyStatus !== 2) {
+		uni.showModal({
+			title: '提示',
+			content: '您还未通过身份认证，无法发布任务。请先完成身份认证。',
+			confirmText: '去认证',
+			success: (res) => {
+				if (res.confirm) {
+					uni.navigateTo({ url: '/pages/user/verify' })
+				}
 			}
-		}
+		})
+		return
+	}
+
+	if (!formData.pickupCode || !formData.address || !formData.reward) {
+		uni.showToast({ title: '请填写完整信息', icon: 'none' });
+		return;
+	}
+	uni.showLoading({ title: '提交中...' });
+
+	const res = await publishTask(formData);
+	if (res.code == 200) {
+		uni.hideLoading();
+		uni.showToast({ title: '发布成功', icon: 'success' });
+		setTimeout(() => {
+			uni.switchTab({ url: '/pages/user/orders' });
+		}, 1500);
+	} else {
+		uni.hideLoading();
+		uni.showToast({ title: res.message, icon: 'none' });
 	}
 }
 </script>

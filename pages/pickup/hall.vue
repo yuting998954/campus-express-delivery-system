@@ -1,242 +1,213 @@
 <template>
 	<view class="container">
-		<!-- 筛选栏 -->
 		<view class="filter-section">
-			<!-- 搜索框 -->
 			<view class="search-box">
 				<text class="search-icon">🔍</text>
-				<input 
-					class="search-input" 
-					type="text" 
-					v-model="searchKeyword" 
-					placeholder="搜索地址/备注..." 
-					confirm-type="search"
-				/>
+				<input class="search-input" type="text" v-model="searchKeyword" placeholder="搜索地址/备注..."
+					confirm-type="search" />
 				<view class="clear-icon" v-if="searchKeyword" @click="searchKeyword = ''">✕</view>
 			</view>
-			
-			<!-- 筛选标签 -->
+
 			<view class="filter-tags">
-				<view 
-					class="filter-tag" 
-					:class="{ active: filterUrgent }" 
-					@click="toggleUrgent"
-				>
+				<view class="filter-tag" :class="{ active: filterUrgent }" @click="toggleUrgent">
 					加急单
 				</view>
-				<picker 
-					mode="selector" 
-					:range="weightOptions" 
-					range-key="label" 
-					@change="onWeightChange"
-				>
+				<picker mode="selector" :range="weightOptions" range-key="label" @change="onWeightChange">
 					<view class="filter-tag" :class="{ active: filterWeight !== 'all' }">
 						{{ currentWeightLabel }} ▾
 					</view>
 				</picker>
-				<view 
-					class="filter-tag" 
-					:class="{ active: sortBy === 'reward_desc' }" 
-					@click="toggleSort"
-				>
+				<view class="filter-tag" :class="{ active: sortBy === 'reward_desc' }" @click="toggleSort">
 					报酬最高
 				</view>
 			</view>
 		</view>
 
-		<!-- 订单列表 -->
-		<view class="order-list">
-			<view v-for="order in filteredOrders" :key="order.id" class="order-card">
+		<view class="order-list" v-if="availableOrders.length > 0">
+			<view v-for="order in sortedOrders" :key="order.id" class="order-card">
 				<view class="order-header">
 					<view class="header-left">
 						<view class="tag urgent" v-if="order.isUrgent">加急</view>
-						<view class="tag weight">{{order.weightLabel}}</view>
+						<view class="tag weight">{{ order.weightLabel }}</view>
 					</view>
 					<view class="reward">
 						<text class="currency">￥</text>
-						<text class="amount">{{order.totalReward}}</text>
+						<text class="amount">{{ order.totalReward }}</text>
 					</view>
 				</view>
-				
+
 				<view class="divider"></view>
-				
+
 				<view class="order-body">
 					<view class="info-row">
 						<text class="info-icon">📦</text>
-						<text class="info-text">{{order.quantity}} 个包裹</text>
+						<text class="info-text">{{ order.quantity }} 个包裹</text>
 					</view>
 					<view class="info-row">
 						<text class="info-icon">📍</text>
-						<text class="info-text address">{{order.address}}</text>
+						<text class="info-text address">{{ order.address }}</text>
 					</view>
 					<view class="info-row">
 						<text class="info-icon">⏰</text>
-						<text class="info-text">{{order.expectedTime}}</text>
+						<text class="info-text">{{ order.expectedTime }}</text>
 					</view>
 					<view class="info-row" v-if="order.notes">
 						<text class="info-icon">📝</text>
-						<text class="info-text notes">{{order.notes}}</text>
+						<text class="info-text notes">{{ order.notes }}</text>
 					</view>
 				</view>
-				
+
 				<view class="order-footer">
 					<button class="take-btn" hover-class="take-btn-hover" @tap="takeOrder(order)">立即抢单</button>
 				</view>
 			</view>
 		</view>
 
-		<!-- 空状态 -->
-		<view v-if="filteredOrders.length === 0" class="empty-state">
+		<view v-if="isLoading" class="loading-state">
+			<text>加载中...</text>
+		</view>
+
+		<view v-if="availableOrders.length === 0 && !isLoading" class="empty-state">
 			<text class="empty-icon">📭</text>
 			<text class="empty-text">暂无符合条件的订单</text>
 		</view>
 	</view>
 </template>
 
-<script>
-export default {
-	data() {
-		return {
-			searchKeyword: '',
-			filterUrgent: false,
-			filterWeight: 'all', // all, light, medium, heavy
-			sortBy: 'default', // default, reward_desc
-			
-			weightOptions: [
-				{ label: '全部重量', value: 'all' },
-				{ label: '轻件 (<1kg)', value: 'light' },
-				{ label: '中件 (1-3kg)', value: 'medium' },
-				{ label: '重件 (>3kg)', value: 'heavy' }
-			],
-			
-			// 模拟更多数据以便测试筛选
-			availableOrders: [
-				{
-					id: 1,
-					isUrgent: true,
-					weightLabel: '轻件',
-					weightValue: 'light',
-					totalReward: 15,
-					quantity: 1,
-					address: '学生宿舍 A 栋 302',
-					expectedTime: '今天 18:00',
-					notes: '请送到门口即可'
-				},
-				{
-					id: 2,
-					isUrgent: false,
-					weightLabel: '重件',
-					weightValue: 'heavy',
-					totalReward: 12,
-					quantity: 2,
-					address: '教职工公寓 3 号楼 101',
-					expectedTime: '明天 10:00',
-					notes: '电梯房'
-				},
-				{
-					id: 3,
-					isUrgent: true,
-					weightLabel: '中件',
-					weightValue: 'medium',
-					totalReward: 25,
-					quantity: 3,
-					address: '图书馆正门',
-					expectedTime: '今天 14:30',
-					notes: '到了打电话'
-				},
-				{
-					id: 4,
-					isUrgent: false,
-					weightLabel: '轻件',
-					weightValue: 'light',
-					totalReward: 5,
-					quantity: 1,
-					address: '第二食堂门口',
-					expectedTime: '今天 12:00',
-					notes: ''
-				},
-				{
-					id: 5,
-					isUrgent: false,
-					weightLabel: '中件',
-					weightValue: 'medium',
-					totalReward: 8,
-					quantity: 1,
-					address: '学生宿舍 B 栋 505',
-					expectedTime: '明天 09:00',
-					notes: '放门口鞋柜上'
-				}
-			]
-		}
-	},
-	computed: {
-		currentWeightLabel() {
-			const option = this.weightOptions.find(o => o.value === this.filterWeight);
-			return option ? (option.value === 'all' ? '包裹重量' : option.label.split(' ')[0]) : '包裹重量';
-		},
-		filteredOrders() {
-			let result = [...this.availableOrders];
-			
-			// 1. 关键词搜索
-			if (this.searchKeyword) {
-				const keyword = this.searchKeyword.toLowerCase();
-				result = result.filter(order => 
-					order.address.toLowerCase().includes(keyword) || 
-					(order.notes && order.notes.toLowerCase().includes(keyword))
-				);
-			}
-			
-			// 2. 加急筛选
-			if (this.filterUrgent) {
-				result = result.filter(order => order.isUrgent);
-			}
-			
-			// 3. 重量筛选
-			if (this.filterWeight !== 'all') {
-				result = result.filter(order => order.weightValue === this.filterWeight);
-			}
-			
-			// 4. 排序
-			if (this.sortBy === 'reward_desc') {
-				result.sort((a, b) => b.totalReward - a.totalReward);
-			}
-			
-			return result;
-		}
-	},
-	methods: {
-		toggleUrgent() {
-			this.filterUrgent = !this.filterUrgent;
-		},
-		onWeightChange(e) {
-			const index = e.detail.value;
-			this.filterWeight = this.weightOptions[index].value;
-		},
-		toggleSort() {
-			this.sortBy = this.sortBy === 'default' ? 'reward_desc' : 'default';
-		},
-		takeOrder(order) {
-			uni.showModal({
-				title: '确认接单',
-				content: `确认承接送往 ${order.address} 的订单吗？`,
-				confirmColor: '#667eea',
-				success: (res) => {
-					if (res.confirm) {
-						uni.showLoading({ title: '接单中...' });
-						setTimeout(() => {
-							uni.hideLoading();
-							uni.showToast({ title: '接单成功', icon: 'success' });
-							// 模拟移除订单
-							const index = this.availableOrders.findIndex(o => o.id === order.id);
-							if (index > -1) {
-								this.availableOrders.splice(index, 1);
-							}
-						}, 1000);
-					}
-				}
-			});
-		}
+<script setup>
+import { ref, computed, watch } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
+import { getPickupHall, acceptOrder } from '@/utils/api'
+import { getUserInfo } from '@/utils/storage.js'
+
+const searchKeyword = ref('')
+const filterUrgent = ref(false)
+const filterWeight = ref('')
+const sortBy = ref('default')
+
+const weightOptions = [
+	{ label: '全部重量', value: '' },
+	{ label: '轻件 (<1kg)', value: 'light' },
+	{ label: '中件 (1-3kg)', value: 'medium' },
+	{ label: '重件 (>3kg)', value: 'heavy' }
+]
+
+const availableOrders = ref([])
+const isLoading = ref(false)
+
+const currentWeightLabel = computed(() => {
+	const option = weightOptions.find(o => o.value === filterWeight.value);
+	return option ? (option.value === '' ? '包裹重量' : option.label.split(' ')[0]) : '包裹重量';
+})
+
+// 后端已过滤，前端只需排序
+const sortedOrders = computed(() => {
+	const result = [...availableOrders.value];
+	if (sortBy.value === 'reward_desc') {
+		result.sort((a, b) => {
+			const aReward = parseFloat(a.totalReward) || 0;
+			const bReward = parseFloat(b.totalReward) || 0;
+			return bReward - aReward;
+		});
 	}
+	return result;
+})
+
+// 构建查询参数
+const buildQuery = () => {
+	const query = {}
+	if (searchKeyword.value) query.keyword = searchKeyword.value
+	if (filterUrgent.value) query.urgent = true
+	if (filterWeight.value) query.weightType = filterWeight.value
+	return query
+}
+
+// 加载订单列表
+const loadOrders = async () => {
+	isLoading.value = true
+	try {
+		const res = await getPickupHall(buildQuery())
+		if (res.code === 200) {
+			availableOrders.value = res.data || []
+		}
+	} catch (e) {
+		console.error('加载订单列表失败', e)
+		uni.showToast({ title: '加载失败', icon: 'none' })
+	} finally {
+		isLoading.value = false
+	}
+}
+
+// 监听筛选条件变化，重新加载
+watch([searchKeyword, filterUrgent, filterWeight, sortBy], () => {
+	loadOrders()
+}, { debounce: 300 } // 防抖，避免频繁请求
+)
+
+onShow(() => {
+	loadOrders()
+})
+
+const toggleUrgent = () => {
+	filterUrgent.value = !filterUrgent.value
+}
+
+const onWeightChange = (e) => {
+	const index = e.detail.value
+	filterWeight.value = weightOptions[index].value
+}
+
+const toggleSort = () => {
+	sortBy.value = sortBy.value === 'default' ? 'reward_desc' : 'default'
+}
+
+// 抢单
+const takeOrder = (order) => {
+	const userInfo = getUserInfo()
+	if (!userInfo) {
+		uni.showToast({ title: '请先登录', icon: 'none' })
+		return
+	}
+	if (userInfo.verifyStatus !== 2) {
+		uni.showModal({
+			title: '提示',
+			content: '您还未通过身份认证，无法接单。请先完成身份认证。',
+			confirmText: '去认证',
+			success: (res) => {
+				if (res.confirm) {
+					uni.navigateTo({ url: '/pages/user/verify' })
+				}
+			}
+		})
+		return
+	}
+
+	uni.showModal({
+		title: '确认接单',
+		content: `确认承接送往 ${order.address} 的订单吗？`,
+		confirmColor: '#667eea',
+		success: async (res) => {
+			if (res.confirm) {
+				uni.showLoading({ title: '接单中...' })
+				try {
+					const result = await acceptOrder(order.id)
+					if (result.code === 200) {
+						uni.showToast({ title: '接单成功', icon: 'success' })
+						// 从列表中移除该订单
+						const index = availableOrders.value.findIndex(o => o.id === order.id)
+						if (index > -1) {
+							availableOrders.value.splice(index, 1)
+						}
+					}
+				} catch (e) {
+					console.error('接单失败', e)
+					uni.showToast({ title: e.message || '接单失败', icon: 'none' })
+				} finally {
+					uni.hideLoading()
+				}
+			}
+		}
+	})
 }
 </script>
 
@@ -248,14 +219,13 @@ export default {
 	flex-direction: column;
 }
 
-/* 筛选栏样式 */
 .filter-section {
 	background-color: #ffffff;
 	padding: 20rpx 30rpx;
 	position: sticky;
 	top: 0;
 	z-index: 100;
-	box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.05);
+	box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
 }
 
 .search-box {
@@ -308,7 +278,6 @@ export default {
 	font-weight: bold;
 }
 
-/* 订单列表样式 */
 .order-list {
 	padding: 20rpx 30rpx;
 }
@@ -318,7 +287,7 @@ export default {
 	border-radius: 24rpx;
 	padding: 30rpx;
 	margin-bottom: 24rpx;
-	box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.03);
+	box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.03);
 }
 
 .order-header {
@@ -424,7 +393,14 @@ export default {
 	transform: translateY(2rpx);
 }
 
-/* 空状态样式 */
+.loading-state {
+	display: flex;
+	justify-content: center;
+	padding: 60rpx;
+	color: #999;
+	font-size: 28rpx;
+}
+
 .empty-state {
 	display: flex;
 	flex-direction: column;

@@ -16,68 +16,67 @@
 			<view class="title">上传凭证 (最多 3 张)</view>
 			<view class="photo-uploader">
 				<view v-for="(img, index) in photos" :key="index" class="photo-item">
-					<image :src="img" mode="aspectFill" @tap="previewImg(img)"></image>
-					<view class="delete" @tap="deletePhoto(index)">×</view>
+					<image :src="img" mode="aspectFill" @click="previewImg(img)"></image>
+					<view class="delete" @click="deletePhoto(index)">×</view>
 				</view>
-				<view v-if="photos.length < 3" class="upload-btn" @tap="chooseImage">
+				<view v-if="photos.length < 3" class="upload-btn" @click="chooseImage">
 					<text class="plus">+</text>
 					<text>上传照片</text>
 				</view>
 			</view>
 		</view>
 
-		<button class="submit-btn" type="primary" @tap="submitAppeal">提交申诉</button>
+		<button class="submit-btn" type="primary" @click="submitAppeal">提交申诉</button>
 		<view class="tip">注：提交申诉后，管理员将在 1-3 个工作日内处理，请保持电话畅通。</view>
 	</view>
 </template>
 
-<script>
-export default {
-	data() {
-		return {
-			reasons: ['物品损坏', '快递错送', '代取人态度恶劣', '超时未送达', '其他'],
-			selectedReason: '',
-			description: '',
-			photos: []
-		}
-	},
-	methods: {
-		reasonChange(e) {
-			this.selectedReason = this.reasons[e.detail.value];
-		},
-		chooseImage() {
-			uni.chooseImage({
-				count: 3 - this.photos.length,
-				success: (res) => {
-					this.photos = this.photos.concat(res.tempFilePaths);
-				}
-			});
-		},
-		deletePhoto(index) {
-			this.photos.splice(index, 1);
-		},
-		previewImg(url) {
-			uni.previewImage({ urls: this.photos, current: url });
-		},
-		submitAppeal() {
-			if (!this.selectedReason || !this.description) {
-				uni.showToast({ title: '请填写完整信息', icon: 'none' });
-				return;
-			}
-			uni.showLoading({ title: '提交中...' });
-			setTimeout(() => {
-				uni.hideLoading();
-				uni.showModal({
-					title: '提交成功',
-					content: '您的申诉已提交，请耐心等待管理员仲裁。',
-					showCancel: false,
-					success: () => {
-						uni.navigateBack();
-					}
-				});
-			}, 1000);
-		}
-	}
+<script setup>
+import { ref } from 'vue'
+
+const reasons = ['物品损坏', '快递错送', '代取人态度恶劣', '超时未送达', '其他']
+const selectedReason = ref('')
+const description = ref('')
+const photos = ref([])
+
+const reasonChange = (e) => {
+    selectedReason.value = reasons[e.detail.value];
+}
+
+const chooseImage = () => {
+    uni.chooseImage({
+        count: 3 - photos.value.length,
+        success: (res) => {
+            photos.value = photos.value.concat(res.tempFilePaths);
+        }
+    });
+}
+
+const deletePhoto = (index) => {
+    photos.value.splice(index, 1);
+}
+
+const previewImg = (url) => {
+    uni.previewImage({ urls: photos.value, current: url });
+}
+
+const submitAppeal = () => {
+    if (!selectedReason.value || !description.value) {
+        uni.showToast({ title: '请填写完整信息', icon: 'none' });
+        return;
+    }
+    uni.showLoading({ title: '提交中...' });
+    setTimeout(() => {
+        uni.hideLoading();
+        uni.showModal({
+            title: '提交成功',
+            content: '您的申诉已提交，请耐心等待管理员仲裁。',
+            showCancel: false,
+            success: () => {
+                uni.navigateBack();
+            }
+        });
+    }, 1000);
 }
 </script>
 

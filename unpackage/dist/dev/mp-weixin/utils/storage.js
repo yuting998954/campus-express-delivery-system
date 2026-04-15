@@ -26,6 +26,7 @@ function clearAuth() {
   removeUserInfo();
 }
 exports.clearAuth = clearAuth;
+exports.getToken = getToken;
 exports.getUserInfo = getUserInfo;
 exports.isLoggedIn = isLoggedIn;
 exports.setToken = setToken;

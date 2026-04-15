@@ -86,6 +86,12 @@
         "navigationBarTitleText": "注册",
         "navigationStyle": "custom"
       }
+    },
+    {
+      "path": "pages/my/messages/messages",
+      "style": {
+        "navigationBarTitleText": "系统消息"
+      }
     }
   ],
   "globalStyle": {

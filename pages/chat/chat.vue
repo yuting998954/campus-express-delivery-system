@@ -12,50 +12,45 @@
 
 		<view class="input-bar">
 			<input class="input" type="text" v-model="inputText" placeholder="输入消息..." @confirm="sendMsg" />
-			<button class="send-btn" type="primary" size="mini" @tap="sendMsg">发送</button>
+			<button class="send-btn" type="primary" size="mini" @click="sendMsg">发送</button>
 		</view>
 	</view>
 </template>
 
-<script>
-export default {
-	data() {
-		return {
-			inputText: '',
-			lastMsgId: '',
-			messages: [
-				{ type: 'received', text: '您好，我已经接单了，正在取件中。' },
-				{ type: 'sent', text: '好的，麻烦轻拿轻放，谢谢！' },
-				{ type: 'received', text: '没问题，我会注意的。' }
-			]
-		}
-	},
-	methods: {
-		sendMsg() {
-			if (!this.inputText.trim()) return;
-			
-			this.messages.push({
-				type: 'sent',
-				text: this.inputText
-			});
-			this.inputText = '';
-			this.scrollToBottom();
-			
-			// Mock reply
-			setTimeout(() => {
-				this.messages.push({
-					type: 'received',
-					text: '收到。'
-				});
-				this.scrollToBottom();
-			}, 1000);
-		},
-		scrollToBottom() {
-			this.$nextTick(() => {
-				this.lastMsgId = 'msg-' + (this.messages.length - 1);
-			});
-		}
-	}
+<script setup>
+import { ref, nextTick } from 'vue'
+
+const inputText = ref('')
+const lastMsgId = ref('')
+const messages = ref([
+    { type: 'received', text: '您好，我已经接单了，正在取件中。' },
+    { type: 'sent', text: '好的，麻烦轻拿轻放，谢谢！' },
+    { type: 'received', text: '没问题，我会注意的。' }
+])
+
+const sendMsg = () => {
+    if (!inputText.value.trim()) return;
+
+    messages.value.push({
+        type: 'sent',
+        text: inputText.value
+    });
+    inputText.value = '';
+    scrollToBottom();
+
+    setTimeout(() => {
+        messages.value.push({
+            type: 'received',
+            text: '收到。'
+        });
+        scrollToBottom();
+    }, 1000);
+}
+
+const scrollToBottom = () => {
+    nextTick(() => {
+        lastMsgId.value = 'msg-' + (messages.value.length - 1);
+    });
 }
 </script>
 
@@ -118,7 +113,6 @@ export default {
 	border-left-color: #95ec69;
 }
 .input-bar {
-
 	padding: 20rpx 15rpx;
 	background-color: #f7f7f7;
 	display: flex;

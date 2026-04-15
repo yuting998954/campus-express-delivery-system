@@ -1,6 +1,5 @@
 <template>
 	<view class="container">
-		<!-- 状态头部 -->
 		<view class="status-header">
 			<view class="icon-box">
 				<text class="status-icon">✅</text>
@@ -9,7 +8,6 @@
 			<text class="status-desc">感谢您的信任，期待再次为您服务</text>
 		</view>
 
-		<!-- 费用结算卡片 -->
 		<view class="card settlement-card">
 			<view class="card-title">费用明细</view>
 			<view class="amount-box">
@@ -37,7 +35,6 @@
 			</view>
 		</view>
 
-		<!-- 配送员信息 -->
 		<view class="card runner-card">
 			<view class="runner-info">
 				<image class="runner-avatar" :src="runnerInfo.avatar" mode="aspectFill"></image>
@@ -54,41 +51,40 @@
 			</view>
 		</view>
 
-		<!-- 评价卡片 -->
 		<view class="card eval-card">
 			<view class="card-title">服务评价</view>
 			<view class="rating-box">
 				<view class="stars">
-					<text 
-						v-for="i in 5" 
-						:key="i" 
-						class="star" 
+					<text
+						v-for="i in 5"
+						:key="i"
+						class="star"
 						:class="{ active: i <= rating }"
-						@tap="setRating(i)"
+						@click="setRating(i)"
 					>★</text>
 				</view>
 				<text class="rating-text">{{ ratingText }}</text>
 			</view>
 
 			<view class="tags-box">
-				<view 
-					v-for="(tag, index) in availableTags" 
-					:key="index" 
-					class="tag" 
+				<view
+					v-for="(tag, index) in availableTags"
+					:key="index"
+					class="tag"
 					:class="{ active: selectedTags.includes(tag) }"
-					@tap="toggleTag(tag)"
+					@click="toggleTag(tag)"
 				>
 					{{ tag }}
 				</view>
 			</view>
 
-			<textarea 
-				class="comment-input" 
-				v-model="comment" 
-				placeholder="配送员服务如何？说说您的体验吧..." 
+			<textarea
+				class="comment-input"
+				v-model="comment"
+				placeholder="配送员服务如何？说说您的体验吧..."
 				maxlength="200"
 			/>
-			
+
 			<view class="anonymous-row" @click="isAnonymous = !isAnonymous">
 				<view class="checkbox" :class="{ checked: isAnonymous }">
 					<text v-if="isAnonymous">✓</text>
@@ -99,77 +95,135 @@
 
 		<view class="footer-spacer"></view>
 		<view class="footer-bar">
-			<button class="submit-btn" hover-class="btn-hover" @tap="submitEval">提交评价</button>
+			<button class="submit-btn" hover-class="btn-hover" @click="submitEval">提交评价</button>
 		</view>
 	</view>
 </template>
 
-<script>
-export default {
-	data() {
-		return {
-			orderInfo: {
-				orderNo: 'ORD20260305001',
-				baseFee: '12.00',
-				urgentFee: '5.00',
-				tipFee: '2.00',
-				totalAmount: '19.00'
-			},
-			runnerInfo: {
-				name: '李同学',
-				avatar: '/static/logo.png', // 实际项目中应替换为真实头像
-				phone: '13800138000'
-			},
-			rating: 5,
-			comment: '',
-			selectedTags: [],
-			availableTags: ['送达准时', '服务态度好', '穿着整洁', '餐品完好', '风雨无阻'],
-			isAnonymous: false
-		}
-	},
-	computed: {
-		ratingText() {
-			const texts = ['非常不满意', '不满意', '一般', '满意', '非常满意'];
-			return texts[this.rating - 1] || '';
-		}
-	},
-	methods: {
-		setRating(score) {
-			this.rating = score;
-		},
-		toggleTag(tag) {
-			const index = this.selectedTags.indexOf(tag);
-			if (index > -1) {
-				this.selectedTags.splice(index, 1);
-			} else {
-				this.selectedTags.push(tag);
-			}
-		},
-		contactRunner() {
-			uni.makePhoneCall({
-				phoneNumber: this.runnerInfo.phone
-			});
-		},
-		submitEval() {
-			if (this.rating === 0) {
-				uni.showToast({ title: '请先打分哦', icon: 'none' });
-				return;
-			}
-			
-			uni.showLoading({ title: '提交中...' });
-			
-			// 模拟提交请求
-			setTimeout(() => {
-				uni.hideLoading();
-				uni.showToast({ title: '评价成功', icon: 'success' });
-				
-				setTimeout(() => {
-					// 返回上一页或跳转到订单列表
-					uni.switchTab({ url: '/pages/user/orders' });
-				}, 1500);
-			}, 1000);
-		}
-	}
+<script setup>
+import { ref, computed } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
+import { getOrderDetail, submitEvaluation, getUserInfo } from '@/utils/api'
+
+const orderInfo = ref({
+    orderNo: '',
+    baseFee: '0.00',
+    urgentFee: '0.00',
+    tipFee: '0.00',
+    totalAmount: '0.00'
+})
+
+const runnerInfo = ref({
+    name: '',
+    avatar: '/static/logo.png',
+    phone: ''
+})
+
+const rating = ref(5)
+const comment = ref('')
+const selectedTags = ref([])
+const isAnonymous = ref(false)
+const orderId = ref(null)
+const evaluatorId = ref(null)
+const targetUserId = ref(null)
+
+const availableTags = ['送达准时', '服务态度好', '穿着整洁', '餐品完好', '风雨无阻']
+
+const ratingText = computed(() => {
+    const texts = ['非常不满意', '不满意', '一般', '满意', '非常满意'];
+    return texts[rating.value - 1] || '';
+})
+
+onLoad(async (options) => {
+    if (options.id) {
+        orderId.value = Number(options.id);
+        uni.showLoading({ title: '加载中...' });
+        try {
+            // 获取订单详情
+            const res = await getOrderDetail(orderId.value);
+            if (res.code === 200 && res.data) {
+                const order = res.data;
+                orderInfo.value = {
+                    orderNo: order.orderNo,
+                    baseFee: order.reward || '0.00',
+                    urgentFee: order.urgentFee || '0.00',
+                    totalAmount: order.totalReward || '0.00'
+                };
+                // 设置跑腿人信息
+                if (order.runnerId) {
+                    targetUserId.value = order.runnerId;
+                    runnerInfo.value = {
+                        name: order.runnerName || '代取员',
+                        avatar: order.runnerAvatar || '/static/logo.png',
+                        phone: order.runnerPhone || ''
+                    };
+                }
+                // 获取当前用户信息
+                const userRes = await getUserInfo();
+                if (userRes.code === 200 && userRes.data) {
+                    evaluatorId.value = userRes.data.id;
+                }
+            }
+        } catch (e) {
+            console.error('加载订单信息失败', e);
+        } finally {
+            uni.hideLoading();
+        }
+    }
+})
+
+const setRating = (score) => {
+    rating.value = score;
+}
+
+const toggleTag = (tag) => {
+    const index = selectedTags.value.indexOf(tag);
+    if (index > -1) {
+        selectedTags.value.splice(index, 1);
+    } else {
+        selectedTags.value.push(tag);
+    }
+}
+
+const contactRunner = () => {
+    if (runnerInfo.value.phone) {
+        uni.makePhoneCall({
+            phoneNumber: runnerInfo.value.phone
+        });
+    }
+}
+
+const submitEval = async () => {
+    if (rating.value === 0) {
+        uni.showToast({ title: '请先打分哦', icon: 'none' });
+        return;
+    }
+    if (!evaluatorId.value || !targetUserId.value) {
+        uni.showToast({ title: '数据加载中，请稍后', icon: 'none' });
+        return;
+    }
+
+    uni.showLoading({ title: '提交中...' });
+    try {
+        const res = await submitEvaluation({
+            orderId: orderId.value,
+            evaluatorId: evaluatorId.value,
+            targetUserId: targetUserId.value,
+            star: rating.value,
+            content: comment.value,
+            tags: selectedTags.value
+        });
+        if (res.code === 200) {
+            uni.showToast({ title: '评价成功', icon: 'success' });
+            setTimeout(() => {
+                uni.navigateBack();
+            }, 1500);
+        }
+    } catch (e) {
+        console.error('提交评价失败', e);
+    } finally {
+        uni.hideLoading();
+    }
 }
 </script>
 
@@ -181,7 +235,6 @@ export default {
 	padding-bottom: 120rpx;
 }
 
-/* 头部状态 */
 .status-header {
 	display: flex;
 	flex-direction: column;
@@ -218,7 +271,6 @@ export default {
 	color: #999;
 }
 
-/* 通用卡片样式 */
 .card {
 	background: #fff;
 	border-radius: 20rpx;
@@ -236,7 +288,6 @@ export default {
 	padding-left: 16rpx;
 }
 
-/* 结算卡片 */
 .amount-box {
 	text-align: center;
 	margin-bottom: 40rpx;
@@ -289,7 +340,6 @@ export default {
 	font-size: 32rpx;
 }
 
-/* 配送员卡片 */
 .runner-info {
 	display: flex;
 	align-items: center;
@@ -347,7 +397,6 @@ export default {
 	font-size: 32rpx;
 }
 
-/* 评价卡片 */
 .rating-box {
 	display: flex;
 	flex-direction: column;
@@ -440,7 +489,6 @@ export default {
 	color: #666;
 }
 
-/* 底部按钮 */
 .footer-bar {
 	position: fixed;
 	bottom: 0;

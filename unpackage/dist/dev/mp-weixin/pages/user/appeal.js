@@ -1,34 +1,31 @@
 "use strict";
 const common_vendor = require("../../common/vendor.js");
 const _sfc_main = {
-  data() {
-    return {
-      reasons: ["物品损坏", "快递错送", "代取人态度恶劣", "超时未送达", "其他"],
-      selectedReason: "",
-      description: "",
-      photos: []
+  __name: "appeal",
+  setup(__props) {
+    const reasons = ["物品损坏", "快递错送", "代取人态度恶劣", "超时未送达", "其他"];
+    const selectedReason = common_vendor.ref("");
+    const description = common_vendor.ref("");
+    const photos = common_vendor.ref([]);
+    const reasonChange = (e) => {
+      selectedReason.value = reasons[e.detail.value];
     };
-  },
-  methods: {
-    reasonChange(e) {
-      this.selectedReason = this.reasons[e.detail.value];
-    },
-    chooseImage() {
+    const chooseImage = () => {
       common_vendor.index.chooseImage({
-        count: 3 - this.photos.length,
+        count: 3 - photos.value.length,
         success: (res) => {
-          this.photos = this.photos.concat(res.tempFilePaths);
+          photos.value = photos.value.concat(res.tempFilePaths);
         }
       });
-    },
-    deletePhoto(index) {
-      this.photos.splice(index, 1);
-    },
-    previewImg(url) {
-      common_vendor.index.previewImage({ urls: this.photos, current: url });
-    },
-    submitAppeal() {
-      if (!this.selectedReason || !this.description) {
+    };
+    const deletePhoto = (index) => {
+      photos.value.splice(index, 1);
+    };
+    const previewImg = (url) => {
+      common_vendor.index.previewImage({ urls: photos.value, current: url });
+    };
+    const submitAppeal = () => {
+      if (!selectedReason.value || !description.value) {
         common_vendor.index.showToast({ title: "请填写完整信息", icon: "none" });
         return;
       }
@@ -44,31 +41,31 @@ const _sfc_main = {
           }
         });
       }, 1e3);
-    }
+    };
+    return (_ctx, _cache) => {
+      return common_vendor.e({
+        a: common_vendor.t(selectedReason.value || "请选择申诉原因"),
+        b: common_vendor.o(reasonChange),
+        c: reasons,
+        d: description.value,
+        e: common_vendor.o(($event) => description.value = $event.detail.value),
+        f: common_vendor.f(photos.value, (img, index, i0) => {
+          return {
+            a: img,
+            b: common_vendor.o(($event) => previewImg(img), index),
+            c: common_vendor.o(($event) => deletePhoto(index), index),
+            d: index
+          };
+        }),
+        g: photos.value.length < 3
+      }, photos.value.length < 3 ? {
+        h: common_vendor.o(chooseImage)
+      } : {}, {
+        i: common_vendor.o(submitAppeal)
+      });
+    };
   }
 };
-function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
-  return common_vendor.e({
-    a: common_vendor.t($data.selectedReason || "请选择申诉原因"),
-    b: common_vendor.o((...args) => $options.reasonChange && $options.reasonChange(...args)),
-    c: $data.reasons,
-    d: $data.description,
-    e: common_vendor.o(($event) => $data.description = $event.detail.value),
-    f: common_vendor.f($data.photos, (img, index, i0) => {
-      return {
-        a: img,
-        b: common_vendor.o(($event) => $options.previewImg(img), index),
-        c: common_vendor.o(($event) => $options.deletePhoto(index), index),
-        d: index
-      };
-    }),
-    g: $data.photos.length < 3
-  }, $data.photos.length < 3 ? {
-    h: common_vendor.o((...args) => $options.chooseImage && $options.chooseImage(...args))
-  } : {}, {
-    i: common_vendor.o((...args) => $options.submitAppeal && $options.submitAppeal(...args))
-  });
-}
-const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-1cccd44d"]]);
+const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["__scopeId", "data-v-1cccd44d"]]);
 wx.createPage(MiniProgramPage);
 //# sourceMappingURL=../../../.sourcemap/mp-weixin/pages/user/appeal.js.map
