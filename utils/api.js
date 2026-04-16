@@ -38,6 +38,7 @@ function request(url, method = "GET", data = {}) {
   });
 }
 
+
 // 登录接口
 export function login(data) {
   return request("/auth/login", "POST", data);
@@ -180,4 +181,19 @@ export function markMessageRead(messageId) {
 // 标记所有消息为已读
 export function markAllMessagesRead() {
   return request("/messages/read/all", "PUT");
+}
+
+// 提交纠纷
+export function submitDispute(data) {
+  return request("/dispute/submit", "POST", data);
+}
+
+// 查询当前纠纷记录
+export function getMyDisputes(data) {
+  return request("/dispute/my", "GET",data);
+}
+
+// 获取纠纷详情
+export function getDisputeDetail(disputeId) {
+  return request("/dispute/" + disputeId, "GET");
 }

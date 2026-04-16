@@ -6,29 +6,47 @@ const utils_storage = require("../../utils/storage.js");
 const _sfc_main = {
   __name: "order-detail",
   setup(__props) {
-    const order = common_vendor.ref(null);
-    const userInfo = common_vendor.ref(null);
+    const order = common_vendor.ref({});
+    const userInfo = common_vendor.ref({});
     const showModal = common_vendor.ref(false);
     const modalTitle = common_vendor.ref("");
     const currentProgress = common_vendor.ref("");
     const proofImage = common_vendor.ref("");
+    const orderId = common_vendor.ref(null);
     common_vendor.onLoad(async (options) => {
       userInfo.value = utils_storage.getUserInfo();
       if (options.id) {
-        common_vendor.index.showLoading({ title: "加载中..." });
-        try {
-          const res = await utils_api.getOrderDetail(options.id);
-          if (res.code === 200) {
-            order.value = res.data;
-          }
-        } catch (e) {
-          common_vendor.index.__f__("error", "at pages/user/order-detail.vue:197", "加载订单详情失败", e);
-          common_vendor.index.showToast({ title: "加载失败", icon: "none" });
-        } finally {
-          common_vendor.index.hideLoading();
-        }
+        orderId.value = options.id;
+        loadOrderDetail();
       }
     });
+    common_vendor.onShow(() => {
+      if (orderId.value) {
+        loadOrderDetail();
+      }
+      common_vendor.index.$on("refreshOrderDetail", () => {
+        if (orderId.value) {
+          loadOrderDetail();
+        }
+      });
+    });
+    common_vendor.onUnmounted(() => {
+      common_vendor.index.$off("refreshOrderDetail");
+    });
+    const loadOrderDetail = async () => {
+      common_vendor.index.showLoading({ title: "加载中..." });
+      try {
+        const res = await utils_api.getOrderDetail(orderId.value);
+        if (res.code === 200) {
+          order.value = res.data;
+        }
+      } catch (e) {
+        common_vendor.index.__f__("error", "at pages/user/order-detail.vue:224", "加载订单详情失败", e);
+        common_vendor.index.showToast({ title: "加载失败", icon: "none" });
+      } finally {
+        common_vendor.index.hideLoading();
+      }
+    };
     const isRunner = common_vendor.computed(() => {
       var _a;
       return ((_a = userInfo.value) == null ? void 0 : _a.role) === 1;
@@ -36,7 +54,7 @@ const _sfc_main = {
     const canReportProgress = common_vendor.computed(() => {
       if (!order.value)
         return false;
-      return order.value.status === 1 || order.value.status === 2 || order.value.status === 3;
+      return order.value.status === 1 || order.value.status === 2 || order.value.status === 3 || order.value.status === 7;
     });
     const statusDesc = common_vendor.computed(() => {
       if (!order.value)
@@ -78,17 +96,15 @@ const _sfc_main = {
         sizeType: ["compressed"],
         sourceType: ["album", "camera"],
         success: async (res) => {
-          var _a;
           const tempFilePath = res.tempFilePaths[0];
-          common_vendor.index.showLoading({ title: "上传中..." });
+          common_vendor.index.showLoading({ title: "处理中..." });
           try {
-            const result = await utils_api.uploadFile(tempFilePath, (_a = userInfo.value) == null ? void 0 : _a.id, "progress");
-            if (result.code === 200) {
-              proofImage.value = result.data.url;
-              common_vendor.index.showToast({ title: "上传成功", icon: "success" });
-            }
+            const compressedPath = await compressImage(tempFilePath);
+            const base64 = await fileToBase64(compressedPath);
+            proofImage.value = base64;
+            common_vendor.index.showToast({ title: "上传成功", icon: "success" });
           } catch (e) {
-            common_vendor.index.__f__("error", "at pages/user/order-detail.vue:273", "上传失败", e);
+            common_vendor.index.__f__("error", "at pages/user/order-detail.vue:299", "上传失败", e);
             common_vendor.index.showToast({ title: "上传失败", icon: "none" });
           } finally {
             common_vendor.index.hideLoading();
@@ -96,29 +112,75 @@ const _sfc_main = {
         }
       });
     };
+    const compressImage = (filePath) => {
+      return new Promise((resolve, reject) => {
+        common_vendor.index.getImageInfo({
+          src: filePath,
+          success: (info) => {
+            if (info.width <= 800) {
+              resolve(filePath);
+              return;
+            }
+            const ratio = 800 / info.width;
+            const targetHeight = Math.round(info.height * ratio);
+            const ctx = common_vendor.index.createCanvasContext("image-canvas");
+            common_vendor.index.showLoading({ title: "压缩中..." });
+            ctx.drawImage(filePath, 0, 0, 800, targetHeight);
+            ctx.draw(false, () => {
+              common_vendor.index.canvasToTempFilePath({
+                canvasId: "image-canvas",
+                quality: 0.8,
+                success: (res) => {
+                  common_vendor.index.hideLoading();
+                  resolve(res.tempFilePath);
+                },
+                fail: (err) => {
+                  common_vendor.index.hideLoading();
+                  resolve(filePath);
+                }
+              });
+            });
+          },
+          fail: () => {
+            resolve(filePath);
+          }
+        });
+      });
+    };
+    const fileToBase64 = (filePath) => {
+      return new Promise((resolve, reject) => {
+        common_vendor.index.getFileSystemManager().readFile({
+          filePath,
+          encoding: "base64",
+          success: (res) => {
+            resolve("data:image/jpeg;base64," + res.data);
+          },
+          fail: (err) => {
+            reject(err);
+          }
+        });
+      });
+    };
     const submitProgress = async () => {
-      if (!order.value)
+      if (!orderId.value)
         return;
       common_vendor.index.showLoading({ title: "提交中..." });
       try {
-        const result = await utils_api.reportProgress(order.value.id, currentProgress.value, proofImage.value);
+        const result = await utils_api.reportProgress(orderId.value, currentProgress.value, proofImage.value);
         if (result.code === 200) {
           common_vendor.index.showToast({ title: "上报成功", icon: "success" });
           showModal.value = false;
-          const res = await utils_api.getOrderDetail(order.value.id);
-          if (res.code === 200) {
-            order.value = res.data;
-          }
+          loadOrderDetail();
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/user/order-detail.vue:298", "上报失败", e);
+        common_vendor.index.__f__("error", "at pages/user/order-detail.vue:379", "上报失败", e);
         common_vendor.index.showToast({ title: e.message || "上报失败", icon: "none" });
       } finally {
         common_vendor.index.hideLoading();
       }
     };
     const cancelOrder = async () => {
-      if (!order.value)
+      if (!orderId.value)
         return;
       common_vendor.index.showModal({
         title: "提示",
@@ -126,7 +188,7 @@ const _sfc_main = {
         success: async (res) => {
           if (res.confirm) {
             try {
-              const result = await utils_api.cancelOrderApi(order.value.id);
+              const result = await utils_api.cancelOrderApi(orderId.value);
               if (result.code === 200) {
                 common_vendor.index.showToast({ title: "已取消", icon: "success" });
                 setTimeout(() => {
@@ -134,25 +196,32 @@ const _sfc_main = {
                 }, 1500);
               }
             } catch (e) {
-              common_vendor.index.__f__("error", "at pages/user/order-detail.vue:321", "取消订单失败", e);
+              common_vendor.index.__f__("error", "at pages/user/order-detail.vue:402", "取消订单失败", e);
             }
           }
         }
       });
     };
     const confirmReceipt = () => {
-      if (!order.value)
+      if (!orderId.value)
         return;
-      common_vendor.index.navigateTo({ url: "/pages/payment/pay?id=" + order.value.id });
+      common_vendor.index.navigateTo({ url: "/pages/payment/pay?id=" + orderId.value });
     };
     const goToEvaluate = () => {
-      if (order.value) {
-        common_vendor.index.navigateTo({ url: "/pages/user/evaluate?id=" + order.value.id });
+      if (orderId.value) {
+        common_vendor.index.navigateTo({ url: "/pages/user/evaluate?id=" + orderId.value });
       }
     };
     const goToAppeal = () => {
-      if (order.value) {
-        common_vendor.index.navigateTo({ url: "/pages/user/appeal?id=" + order.value.id });
+      if (orderId.value) {
+        common_vendor.index.navigateTo({
+          url: "/pages/user/appeal",
+          success: () => {
+            setTimeout(() => {
+              common_vendor.index.$emit("disputeOrder", order.value);
+            }, 100);
+          }
+        });
       }
     };
     return (_ctx, _cache) => {

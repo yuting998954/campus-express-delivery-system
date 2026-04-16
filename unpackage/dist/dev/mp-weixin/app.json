@@ -14,7 +14,7 @@
     "pages/payment/pay",
     "pages/login/login",
     "pages/login/register",
-    "pages/my/messages/messages"
+    "pages/my/dispute/index"
   ],
   "window": {
     "navigationBarTextStyle": "black",

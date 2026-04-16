@@ -26,12 +26,17 @@ const _sfc_main = {
       if (!isLoggedIn.value)
         return;
       try {
-        const msgRes = await utils_api.getUnreadMessageCount();
-        if (msgRes.code === 200) {
-          unreadCount.value = msgRes.data || 0;
+        const disputeRes = await utils_api.getMyDisputes(1, 100);
+        if (disputeRes.code === 200) {
+          const list = disputeRes.data.records || disputeRes.data || [];
+          unreadCount.value = list.filter((i) => i.status === 0).length;
+        }
+        const orderRes = await utils_api.getMyOrders(userInfo.value.role, void 0);
+        if (orderRes.code === 200) {
+          orderCount.value = orderRes.data.total || 0;
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/my/index.vue:118", "加载用户数据失败", e);
+        common_vendor.index.__f__("error", "at pages/my/index.vue:122", "加载用户数据失败", e);
       }
     };
     const getVerifyStatusText = (status) => {
@@ -69,7 +74,7 @@ const _sfc_main = {
             try {
               await utils_api.logout();
             } catch (error) {
-              common_vendor.index.__f__("error", "at pages/my/index.vue:152", "退出登录接口调用失败:", error);
+              common_vendor.index.__f__("error", "at pages/my/index.vue:156", "退出登录接口调用失败:", error);
             }
             utils_storage.clearAuth();
             checkLoginStatus();
@@ -79,10 +84,24 @@ const _sfc_main = {
       });
     };
     const goLogin = () => {
-      common_vendor.index.navigateTo({ url: "/pages/login/login" });
+      common_vendor.index.showModal({
+        title: "提示",
+        content: "请先登录",
+        success: (res) => {
+          if (res.confirm) {
+            common_vendor.index.navigateTo({ url: "/pages/login/login" });
+          }
+        }
+      });
+    };
+    const goDispute = () => {
+      if (!isLoggedIn.value) {
+        goLogin();
+      }
+      common_vendor.index.navigateTo({ url: "/pages/my/dispute/index" });
     };
     const navigateTo = (url) => {
-      const needLoginPages = ["/pages/user/orders", "/pages/pickup/earnings", "/pages/my/messages"];
+      const needLoginPages = ["/pages/user/orders", "/pages/pickup/earnings"];
       if (needLoginPages.includes(url) && !isLoggedIn.value) {
         common_vendor.index.showModal({
           title: "提示",
@@ -134,7 +153,7 @@ const _sfc_main = {
             }
           } catch (error) {
             common_vendor.index.hideLoading();
-            common_vendor.index.__f__("error", "at pages/my/index.vue:224", "上传头像失败:", error);
+            common_vendor.index.__f__("error", "at pages/my/index.vue:242", "上传头像失败:", error);
             common_vendor.index.showToast({ title: "上传头像失败", icon: "none" });
           }
         },
@@ -149,41 +168,38 @@ const _sfc_main = {
         c: common_vendor.t(userInfo.value.phone || "普通用户 / 代取人"),
         d: userInfo.value.verifyStatus === 2
       }, userInfo.value.verifyStatus === 2 ? {} : {}, {
-        e: common_vendor.t(userInfo.value.id || "未登录"),
-        f: unreadCount.value > 0
+        e: unreadCount.value > 0
       }, unreadCount.value > 0 ? {
-        g: common_vendor.t(unreadCount.value > 99 ? "99+" : unreadCount.value)
+        f: common_vendor.t(unreadCount.value > 99 ? "99+" : unreadCount.value)
       } : {}, {
-        h: common_vendor.o(($event) => navigateTo("/pages/my/messages")),
-        i: common_vendor.t(orderCount.value || 0),
-        j: common_vendor.o(($event) => navigateTo("/pages/user/orders")),
-        k: userInfo.value.role === 1
+        g: common_vendor.o(($event) => navigateTo("/pages/my/messages")),
+        h: common_vendor.t(orderCount.value || 0),
+        i: common_vendor.o(($event) => navigateTo("/pages/user/orders")),
+        j: userInfo.value.role === 1
       }, userInfo.value.role === 1 ? {
-        l: common_vendor.t(earnings.value || "0.00"),
-        m: common_vendor.o(($event) => navigateTo("/pages/pickup/earnings"))
+        k: common_vendor.t(earnings.value || "0.00"),
+        l: common_vendor.o(($event) => navigateTo("/pages/pickup/earnings"))
       } : {}, {
-        n: common_vendor.t(userInfo.value.rating || "5.0"),
-        o: userInfo.value.role !== 1 ? 1 : "",
-        p: common_vendor.o(($event) => navigateTo("/pages/user/orders")),
-        q: userInfo.value.role === 1
+        m: common_vendor.t(userInfo.value.rating || "5.0"),
+        n: userInfo.value.role !== 1 ? 1 : "",
+        o: common_vendor.o(($event) => navigateTo("/pages/user/orders")),
+        p: userInfo.value.role === 1
       }, userInfo.value.role === 1 ? {
-        r: common_vendor.o(($event) => navigateTo("/pages/pickup/hall"))
+        q: common_vendor.o(($event) => navigateTo("/pages/pickup/hall"))
       } : {}, {
-        s: userInfo.value.role === 1
+        r: userInfo.value.role === 1
       }, userInfo.value.role === 1 ? {
-        t: common_vendor.o(($event) => navigateTo("/pages/pickup/earnings"))
+        s: common_vendor.o(($event) => navigateTo("/pages/pickup/earnings"))
       } : {}, {
-        v: common_vendor.t(getVerifyStatusText(userInfo.value.verifyStatus)),
-        w: common_vendor.n(getVerifyStatusClass(userInfo.value.verifyStatus)),
-        x: common_vendor.o(($event) => navigateTo("/pages/user/verify")),
-        y: unreadCount.value > 0
-      }, unreadCount.value > 0 ? {} : {}, {
-        z: common_vendor.o(($event) => navigateTo("/pages/my/messages")),
-        A: isLoggedIn.value
+        t: common_vendor.t(getVerifyStatusText(userInfo.value.verifyStatus)),
+        v: common_vendor.n(getVerifyStatusClass(userInfo.value.verifyStatus)),
+        w: common_vendor.o(($event) => navigateTo("/pages/user/verify")),
+        x: common_vendor.o(goDispute),
+        y: isLoggedIn.value
       }, isLoggedIn.value ? {
-        B: common_vendor.o(handleLogout)
+        z: common_vendor.o(handleLogout)
       } : {
-        C: common_vendor.o(goLogin)
+        A: common_vendor.o(goLogin)
       });
     };
   }

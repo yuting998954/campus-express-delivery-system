@@ -11,7 +11,6 @@
 						<text class="badge-text">已认证</text>
 					</view>
 				</view>
-				<view class="uid">ID: {{ userInfo.id || '未登录' }}</view>
 			</view>
 			<!-- 系统消息入口 -->
 			<view class="message-icon" @click="navigateTo('/pages/my/messages')">
@@ -62,10 +61,9 @@
 				</view>
 				<text class="arrow">></text>
 			</view>
-			<view class="menu-item" @click="navigateTo('/pages/my/messages')">
-				<text class="icon">📬</text>
-				<text class="text">系统消息</text>
-				<view class="badge-dot" v-if="unreadCount > 0"></view>
+			<view class="menu-item" @click="goDispute">
+				<text class="icon">⚖️</text>
+				<text class="text">纠纷记录</text>
 				<text class="arrow">></text>
 			</view>
 			<view class="menu-item">
@@ -84,7 +82,7 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { isLoggedIn as checkIsLoggedIn, getUserInfo, clearAuth, setUserInfo } from '@/utils/storage.js'
-import { logout, uploadAvatar, getUnreadMessageCount } from '@/utils/api.js'
+import { logout, uploadAvatar, getMyOrders, getMyDisputes } from '@/utils/api.js'
 
 const userInfo = ref({})
 const isLoggedIn = ref(false)
@@ -109,10 +107,16 @@ const checkLoginStatus = () => {
 const loadUserData = async () => {
 	if (!isLoggedIn.value) return
 	try {
-		// 获取未读消息数
-		const msgRes = await getUnreadMessageCount()
-		if (msgRes.code === 200) {
-			unreadCount.value = msgRes.data || 0
+		// 获取待处理纠纷数作为未读数
+		const disputeRes = await getMyDisputes(1, 100)
+		if (disputeRes.code === 200) {
+			const list = disputeRes.data.records || disputeRes.data || []
+			unreadCount.value = list.filter(i => i.status === 0).length
+		}
+		// 获取订单数量
+		const orderRes = await getMyOrders(userInfo.value.role, undefined)
+		if (orderRes.code === 200) {
+			orderCount.value = orderRes.data.total || 0
 		}
 	} catch (e) {
 		console.error('加载用户数据失败', e)
@@ -160,11 +164,25 @@ const handleLogout = () => {
 }
 
 const goLogin = () => {
-	uni.navigateTo({ url: '/pages/login/login' })
-}
+	uni.showModal({
+		title: '提示',
+		content: '请先登录',
+		success: (res) => {
+			if (res.confirm) {
+				uni.navigateTo({ url: '/pages/login/login' })
+			}
+		}
+	})
 
+}
+const goDispute = () => {
+	if (!isLoggedIn.value) {
+		goLogin()
+	}
+	uni.navigateTo({ url: '/pages/my/dispute/index' })
+}
 const navigateTo = (url) => {
-	const needLoginPages = ['/pages/user/orders', '/pages/pickup/earnings', '/pages/my/messages']
+	const needLoginPages = ['/pages/user/orders', '/pages/pickup/earnings']
 	if (needLoginPages.includes(url) && !isLoggedIn.value) {
 		uni.showModal({
 			title: '提示',

@@ -1,9 +1,11 @@
 <template>
 	<view class="container">
-		<view class="tabs">
-			<view v-for="(tab, index) in tabs" :key="index" class="tab-item" :class="{ active: currentTab === index }"
-				@click="switchTab(index)">
-				{{ tab }}
+		<view class="header">
+			<view class="tabs">
+				<view v-for="(tab, index) in tabs" :key="index" class="tab-item" :class="{ active: currentTab === index }"
+					@click="switchTab(index)">
+					{{ tab }}
+				</view>
 			</view>
 		</view>
 
@@ -127,7 +129,7 @@ const loadOrders = async () => {
 
 		const res = await getMyOrders(userInfo.value.role, status);
 		if (res.code === 200) {
-			orders.value = res.data || [];
+			orders.value = res.data.records || [];
 		}
 	} catch (e) {
 		console.error('加载订单失败', e);
@@ -291,9 +293,10 @@ const getStatusClass = (status) => {
 	display: flex;
 	background-color: #fff;
 	padding: 20rpx 0;
-	position: sticky;
-	top: 0;
-	z-index: 10;
+}
+
+.header {
+	background-color: #fff;
 }
 
 .tab-item {

@@ -191,6 +191,9 @@
 	</view>
 </template>
 
+<!-- 用于图片压缩的隐藏 canvas -->
+<canvas canvas-id="auth-image-canvas" id="auth-image-canvas" style="width:800px;height:800px;position:fixed;left:-9999px;top:-9999px;opacity:0;"></canvas>
+
 <script setup>
 import { ref, reactive } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
@@ -301,14 +304,58 @@ const chooseImage = (key) => {
 			const tempFilePath = res.tempFilePaths[0]
 			// 转换为Base64
 			try {
-				const base64 = await fileToBase64(tempFilePath)
+				uni.showLoading({ title: '处理中...' })
+				// 先压缩再转Base64
+				const compressedPath = await compressImage(tempFilePath)
+				const base64 = await fileToBase64(compressedPath)
 				formData.images[key] = base64
+				uni.hideLoading()
 				uni.showToast({ title: '上传成功', icon: 'success' })
 			} catch (e) {
+				uni.hideLoading()
 				console.error('图片转换失败', e)
 				uni.showToast({ title: '图片处理失败', icon: 'none' })
 			}
 		}
+	})
+}
+
+// 压缩图片：限制宽度为800px，质量80%
+const compressImage = (filePath) => {
+	return new Promise((resolve, reject) => {
+		uni.getImageInfo({
+			src: filePath,
+			success: (info) => {
+				// 如果图片宽度已经小于800，直接使用原图
+				if (info.width <= 800) {
+					resolve(filePath)
+					return
+				}
+				// 计算压缩后的高度
+				const ratio = 800 / info.width
+				const targetHeight = Math.round(info.height * ratio)
+				// 使用 canvas 压缩
+				const ctx = uni.createCanvasContext('auth-image-canvas')
+				ctx.drawImage(filePath, 0, 0, 800, targetHeight)
+				ctx.draw(false, () => {
+					uni.canvasToTempFilePath({
+						canvasId: 'auth-image-canvas',
+						quality: 0.8,
+						success: (res) => {
+							resolve(res.tempFilePath)
+						},
+						fail: () => {
+							// 压缩失败，使用原图
+							resolve(filePath)
+						}
+					})
+				})
+			},
+			fail: () => {
+				// 获取图片信息失败，使用原图
+				resolve(filePath)
+			}
+		})
 	})
 }
 

@@ -168,39 +168,65 @@
 				</view>
 			</view>
 		</view>
+
+		<!-- 用于图片压缩的隐藏 canvas -->
+		<canvas canvas-id="image-canvas" id="image-canvas" style="width:800px;height:800px;position:fixed;left:-9999px;top:-9999px;opacity:0;"></canvas>
 	</view>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
-import { getOrderDetail, cancelOrderApi, reportProgress, uploadFile } from '@/utils/api'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
+import { getOrderDetail, cancelOrderApi, reportProgress } from '@/utils/api'
 import { getUserInfo } from '@/utils/storage.js'
 
-const order = ref(null)
-const userInfo = ref(null)
+const order = ref({})
+const userInfo = ref({})
 const showModal = ref(false)
 const modalTitle = ref('')
 const currentProgress = ref('')
 const proofImage = ref('')
+const orderId = ref(null)
 
 onLoad(async (options) => {
 	userInfo.value = getUserInfo()
 	if (options.id) {
-		uni.showLoading({ title: '加载中...' });
-		try {
-			const res = await getOrderDetail(options.id);
-			if (res.code === 200) {
-				order.value = res.data;
-			}
-		} catch (e) {
-			console.error('加载订单详情失败', e);
-			uni.showToast({ title: '加载失败', icon: 'none' });
-		} finally {
-			uni.hideLoading();
-		}
+		orderId.value = options.id
+		loadOrderDetail()
 	}
 });
+
+// 页面显示时刷新订单详情（用于接收仲裁结果后更新）
+onShow(() => {
+	if (orderId.value) {
+		loadOrderDetail()
+	}
+	// 监听仲裁结果刷新事件
+	uni.$on('refreshOrderDetail', () => {
+		if (orderId.value) {
+			loadOrderDetail()
+		}
+	})
+})
+
+onUnmounted(() => {
+	uni.$off('refreshOrderDetail')
+})
+
+const loadOrderDetail = async () => {
+	uni.showLoading({ title: '加载中...' });
+	try {
+		const res = await getOrderDetail(orderId.value);
+		if (res.code === 200) {
+			order.value = res.data;
+		}
+	} catch (e) {
+		console.error('加载订单详情失败', e);
+		uni.showToast({ title: '加载失败', icon: 'none' });
+	} finally {
+		uni.hideLoading();
+	}
+}
 
 // 判断是否为代取员视角
 const isRunner = computed(() => {
@@ -210,7 +236,7 @@ const isRunner = computed(() => {
 // 代取员是否可以上报进度
 const canReportProgress = computed(() => {
 	if (!order.value) return false
-	return order.value.status === 1 || order.value.status === 2 || order.value.status === 3
+	return order.value.status === 1 || order.value.status === 2 || order.value.status === 3 || order.value.status === 7  // 包含纠纷中的状态
 });
 
 const statusDesc = computed(() => {
@@ -262,13 +288,13 @@ const chooseImage = () => {
 		sourceType: ['album', 'camera'],
 		success: async (res) => {
 			const tempFilePath = res.tempFilePaths[0]
-			uni.showLoading({ title: '上传中...' })
+			uni.showLoading({ title: '处理中...' })
 			try {
-				const result = await uploadFile(tempFilePath, userInfo.value?.id, 'progress')
-				if (result.code === 200) {
-					proofImage.value = result.data.url
-					uni.showToast({ title: '上传成功', icon: 'success' })
-				}
+				// 先压缩再转Base64
+				const compressedPath = await compressImage(tempFilePath)
+				const base64 = await fileToBase64(compressedPath)
+				proofImage.value = base64
+				uni.showToast({ title: '上传成功', icon: 'success' })
 			} catch (e) {
 				console.error('上传失败', e)
 				uni.showToast({ title: '上传失败', icon: 'none' })
@@ -279,20 +305,75 @@ const chooseImage = () => {
 	})
 }
 
+// 压缩图片：限制宽度为800px，质量80%
+const compressImage = (filePath) => {
+	return new Promise((resolve, reject) => {
+		uni.getImageInfo({
+			src: filePath,
+			success: (info) => {
+				// 如果图片宽度已经小于800，直接使用原图
+				if (info.width <= 800) {
+					resolve(filePath)
+					return
+				}
+				// 计算压缩后的高度
+				const ratio = 800 / info.width
+				const targetHeight = Math.round(info.height * ratio)
+				// 使用 canvas 压缩
+				const ctx = uni.createCanvasContext('image-canvas')
+				uni.showLoading({ title: '压缩中...' })
+				ctx.drawImage(filePath, 0, 0, 800, targetHeight)
+				ctx.draw(false, () => {
+					uni.canvasToTempFilePath({
+						canvasId: 'image-canvas',
+						quality: 0.8,
+						success: (res) => {
+							uni.hideLoading()
+							resolve(res.tempFilePath)
+						},
+						fail: (err) => {
+							uni.hideLoading()
+							// 压缩失败，使用原图
+							resolve(filePath)
+						}
+					})
+				})
+			},
+			fail: () => {
+				// 获取图片信息失败，使用原图
+				resolve(filePath)
+			}
+		})
+	})
+}
+
+// 将文件路径转换为Base64
+const fileToBase64 = (filePath) => {
+	return new Promise((resolve, reject) => {
+		uni.getFileSystemManager().readFile({
+			filePath: filePath,
+			encoding: 'base64',
+			success: (res) => {
+				resolve('data:image/jpeg;base64,' + res.data)
+			},
+			fail: (err) => {
+				reject(err)
+			}
+		})
+	})
+}
+
 // 提交进度
 const submitProgress = async () => {
-	if (!order.value) return
+	if (!orderId.value) return
 	uni.showLoading({ title: '提交中...' })
 	try {
-		const result = await reportProgress(order.value.id, currentProgress.value, proofImage.value)
+		const result = await reportProgress(orderId.value, currentProgress.value, proofImage.value)
 		if (result.code === 200) {
 			uni.showToast({ title: '上报成功', icon: 'success' })
 			showModal.value = false
 			// 刷新订单详情
-			const res = await getOrderDetail(order.value.id)
-			if (res.code === 200) {
-				order.value = res.data
-			}
+			loadOrderDetail()
 		}
 	} catch (e) {
 		console.error('上报失败', e)
@@ -303,14 +384,14 @@ const submitProgress = async () => {
 }
 
 const cancelOrder = async () => {
-	if (!order.value) return;
+	if (!orderId.value) return;
 	uni.showModal({
 		title: '提示',
 		content: '确定取消订单吗？',
 		success: async (res) => {
 			if (res.confirm) {
 				try {
-					const result = await cancelOrderApi(order.value.id);
+					const result = await cancelOrderApi(orderId.value);
 					if (result.code === 200) {
 						uni.showToast({ title: '已取消', icon: 'success' });
 						setTimeout(() => {
@@ -326,19 +407,26 @@ const cancelOrder = async () => {
 }
 
 const confirmReceipt = () => {
-	if (!order.value) return;
-	uni.navigateTo({ url: '/pages/payment/pay?id=' + order.value.id });
+	if (!orderId.value) return;
+	uni.navigateTo({ url: '/pages/payment/pay?id=' + orderId.value });
 }
 
 const goToEvaluate = () => {
-	if (order.value) {
-		uni.navigateTo({ url: '/pages/user/evaluate?id=' + order.value.id });
+	if (orderId.value) {
+		uni.navigateTo({ url: '/pages/user/evaluate?id=' + orderId.value });
 	}
 }
 
 const goToAppeal = () => {
-	if (order.value) {
-		uni.navigateTo({ url: '/pages/user/appeal?id=' + order.value.id });
+	if (orderId.value) {
+		uni.navigateTo({
+			url: '/pages/user/appeal',
+			success: () => {
+				setTimeout(() => {
+					uni.$emit('disputeOrder', order.value)
+				}, 100)
+			}
+		});
 	}
 }
 </script>

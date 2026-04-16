@@ -45,20 +45,23 @@
 							<text class="line-label">纠纷类型</text>
 							<text class="line-value">{{ item.disputeTypeLabel }}</text>
 						</view>
-						<view class="info-line" v-if="item.status === 1 && item.responsiblePartyLabel">
-							<text class="line-label">责任归属</text>
-							<text class="line-value result">{{ item.responsiblePartyLabel }}</text>
-						</view>
 						<view class="info-line">
-							<text class="line-label">{{ item.status === 1 ? '判定理由' : '判定结果' }}</text>
+							<text class="line-label">判定结果</text>
 							<text class="line-value result" :class="item.status === 1 ? 'has-result' : 'no-result'">
 								{{ item.result || '等待仲裁' }}
+							</text>
+						</view>
+						<view class="info-line">
+							<text class="line-label">判定理由</text>
+							<text class="line-value result" :class="item.status === 1 ? 'has-result' : 'no-result'">
+								{{ item.responsiblePartyLabel || '' }}
 							</text>
 						</view>
 					</view>
 
 					<view class="card-bottom">
-						<text class="time-text">{{ item.status === 1 ? (item.updateTime || item.handleTime) : item.createTime }}</text>
+						<text class="time-text">{{ item.status === 1 ? (item.updateTime || item.handleTime) :
+							item.createTime }}</text>
 						<view class="action-row">
 							<text class="action-text">查看详情</text>
 							<text class="action-arrow">›</text>
@@ -83,7 +86,6 @@
 					<text class="empty-icon">⚖️</text>
 				</view>
 				<text class="empty-title">暂无相关记录</text>
-				<text class="empty-sub">您还没有发起或接收过纠纷申诉</text>
 			</view>
 		</scroll-view>
 	</view>
@@ -93,14 +95,13 @@
 import { ref, computed } from 'vue'
 import { getMyDisputes } from '@/utils/api.js'
 import { isLoggedIn } from '@/utils/storage.js'
-
+import { onShow } from '@dcloudio/uni-app'
 const allList = ref([])
 const loading = ref(false)
 const noMore = ref(false)
-const page = ref(1)
 const pageSize = 10
 const filter = ref('all')
-
+const pageNum = ref(1)
 const displayList = computed(() => {
 	if (filter.value === 'pending') return allList.value.filter(i => i.status === 0)
 	if (filter.value === 'done') return allList.value.filter(i => i.status === 1)
@@ -120,12 +121,11 @@ const setFilter = (f) => {
 }
 
 const refresh = async () => {
-	page.value = 1
 	noMore.value = false
 	loading.value = true
 	allList.value = []
 	try {
-		const res = await getMyDisputes(1, pageSize)
+		const res = await getMyDisputes({ pageNum: pageNum.value, pageSize: pageSize })
 		if (res.code === 200) {
 			allList.value = res.data.records || res.data || []
 			noMore.value = allList.value.length < pageSize
@@ -140,7 +140,7 @@ const refresh = async () => {
 const loadMore = async () => {
 	if (loading.value || noMore.value) return
 	loading.value = true
-	page.value++
+	pageNum.value++
 	try {
 		const res = await getMyDisputes(page.value, pageSize)
 		if (res.code === 200) {
@@ -438,10 +438,5 @@ const goToDetail = (item) => {
 	color: #444;
 	font-weight: 600;
 	margin-bottom: 12rpx;
-}
-
-.empty-sub {
-	font-size: 26rpx;
-	color: #aaa;
 }
 </style>

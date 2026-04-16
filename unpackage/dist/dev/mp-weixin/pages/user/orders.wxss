@@ -9,10 +9,9 @@
 	display: flex;
 	background-color: #fff;
 	padding: 20rpx 0;
-	position: -webkit-sticky;
-	position: sticky;
-	top: 0;
-	z-index: 10;
+}
+.header.data-v-efd435e4 {
+	background-color: #fff;
 }
 .tab-item.data-v-efd435e4 {
 	flex: 1;

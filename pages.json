@@ -88,9 +88,9 @@
       }
     },
     {
-      "path": "pages/my/messages/messages",
+      "path": "pages/my/dispute/index",
       "style": {
-        "navigationBarTitleText": "系统消息"
+        "navigationBarTitleText": "纠纷记录"
       }
     }
   ],

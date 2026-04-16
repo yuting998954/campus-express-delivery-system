@@ -59,7 +59,7 @@ const _sfc_main = {
           }
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/user/verify.vue:263", "获取认证状态失败", e);
+        common_vendor.index.__f__("error", "at pages/user/verify.vue:266", "获取认证状态失败", e);
         currentStep.value = 1;
       } finally {
         isLoading.value = false;
@@ -91,14 +91,50 @@ const _sfc_main = {
         success: async (res) => {
           const tempFilePath = res.tempFilePaths[0];
           try {
-            const base64 = await fileToBase64(tempFilePath);
+            common_vendor.index.showLoading({ title: "处理中..." });
+            const compressedPath = await compressImage(tempFilePath);
+            const base64 = await fileToBase64(compressedPath);
             formData.images[key] = base64;
+            common_vendor.index.hideLoading();
             common_vendor.index.showToast({ title: "上传成功", icon: "success" });
           } catch (e) {
-            common_vendor.index.__f__("error", "at pages/user/verify.vue:308", "图片转换失败", e);
+            common_vendor.index.hideLoading();
+            common_vendor.index.__f__("error", "at pages/user/verify.vue:316", "图片转换失败", e);
             common_vendor.index.showToast({ title: "图片处理失败", icon: "none" });
           }
         }
+      });
+    };
+    const compressImage = (filePath) => {
+      return new Promise((resolve, reject) => {
+        common_vendor.index.getImageInfo({
+          src: filePath,
+          success: (info) => {
+            if (info.width <= 800) {
+              resolve(filePath);
+              return;
+            }
+            const ratio = 800 / info.width;
+            const targetHeight = Math.round(info.height * ratio);
+            const ctx = common_vendor.index.createCanvasContext("auth-image-canvas");
+            ctx.drawImage(filePath, 0, 0, 800, targetHeight);
+            ctx.draw(false, () => {
+              common_vendor.index.canvasToTempFilePath({
+                canvasId: "auth-image-canvas",
+                quality: 0.8,
+                success: (res) => {
+                  resolve(res.tempFilePath);
+                },
+                fail: () => {
+                  resolve(filePath);
+                }
+              });
+            });
+          },
+          fail: () => {
+            resolve(filePath);
+          }
+        });
       });
     };
     const fileToBase64 = (filePath) => {
@@ -152,7 +188,7 @@ const _sfc_main = {
         }
       } catch (e) {
         common_vendor.index.hideLoading();
-        common_vendor.index.__f__("error", "at pages/user/verify.vue:375", "提交认证失败", e);
+        common_vendor.index.__f__("error", "at pages/user/verify.vue:422", "提交认证失败", e);
         common_vendor.index.showToast({ title: "提交失败，请重试", icon: "none" });
         currentStep.value = 3;
       }
