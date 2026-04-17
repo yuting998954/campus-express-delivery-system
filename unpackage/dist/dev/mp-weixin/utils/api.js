@@ -91,10 +91,18 @@ function submitDispute(data) {
 function getMyDisputes(data) {
   return request("/dispute/my", "GET", data);
 }
+function getEarningStatistics() {
+  return request("/earning/statistics", "GET");
+}
+function getEarningList(query) {
+  return request("/earning/list", "GET", query);
+}
 exports.acceptOrder = acceptOrder;
 exports.authenticate = authenticate;
 exports.cancelOrderApi = cancelOrderApi;
 exports.confirmReceiptApi = confirmReceiptApi;
+exports.getEarningList = getEarningList;
+exports.getEarningStatistics = getEarningStatistics;
 exports.getMyDisputes = getMyDisputes;
 exports.getMyOrders = getMyOrders;
 exports.getOrderDetail = getOrderDetail;

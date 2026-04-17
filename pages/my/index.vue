@@ -61,7 +61,7 @@
 				</view>
 				<text class="arrow">></text>
 			</view>
-			<view class="menu-item" @click="goDispute">
+			<view class="menu-item" @click="navigateTo('/pages/my/dispute')">
 				<text class="icon">⚖️</text>
 				<text class="text">纠纷记录</text>
 				<text class="arrow">></text>
@@ -82,7 +82,7 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { isLoggedIn as checkIsLoggedIn, getUserInfo, clearAuth, setUserInfo } from '@/utils/storage.js'
-import { logout, uploadAvatar, getMyOrders, getMyDisputes } from '@/utils/api.js'
+import { logout, uploadAvatar, getMyOrders, getMyDisputes, getEarningStatistics } from '@/utils/api.js'
 
 const userInfo = ref({})
 const isLoggedIn = ref(false)
@@ -93,6 +93,7 @@ const earnings = ref('0.00')
 onShow(() => {
 	checkLoginStatus()
 	loadUserData()
+	loadEarningStatistics()
 })
 
 const checkLoginStatus = () => {
@@ -103,7 +104,17 @@ const checkLoginStatus = () => {
 		userInfo.value = {}
 	}
 }
-
+const loadEarningStatistics = async () => {
+	if (!isLoggedIn.value || userInfo.value.role !== 1) return
+	try {
+		const res = await getEarningStatistics()
+		if (res.code === 200) {
+			earnings.value = res.data.todayAmount || '0.00'
+		}
+	} catch (e) {
+		console.error('加载收益统计失败', e)
+	}
+}
 const loadUserData = async () => {
 	if (!isLoggedIn.value) return
 	try {
@@ -162,28 +173,11 @@ const handleLogout = () => {
 		}
 	})
 }
-
 const goLogin = () => {
-	uni.showModal({
-		title: '提示',
-		content: '请先登录',
-		success: (res) => {
-			if (res.confirm) {
-				uni.navigateTo({ url: '/pages/login/login' })
-			}
-		}
-	})
-
-}
-const goDispute = () => {
-	if (!isLoggedIn.value) {
-		goLogin()
-	}
-	uni.navigateTo({ url: '/pages/my/dispute/index' })
+	uni.navigateTo({ url: '/pages/login/login' })
 }
 const navigateTo = (url) => {
-	const needLoginPages = ['/pages/user/orders', '/pages/pickup/earnings']
-	if (needLoginPages.includes(url) && !isLoggedIn.value) {
+	if (!isLoggedIn.value) {
 		uni.showModal({
 			title: '提示',
 			content: '请先登录',
@@ -196,7 +190,7 @@ const navigateTo = (url) => {
 		return
 	}
 
-	if (url.includes('hall') || url.includes('orders') || url.includes('profile') || url.includes('index')) {
+	if (url.includes('orders')) {
 		uni.switchTab({ url });
 	} else {
 		uni.navigateTo({ url });
@@ -447,12 +441,14 @@ const changeAvatar = () => {
 .logout-btn,
 .login-btn {
 	margin-top: 60rpx;
-	background-color: #fff;
-	color: #ff4d4f;
-	border: none;
+	background-color: #ff4d4f;
+	color: #fff;
+	/* border: none; */
+	border-radius: 28rpx;
 }
 
 .login-btn {
-	color: #007AFF;
+	background-color: #007AFF;
+	color: #fff;
 }
 </style>

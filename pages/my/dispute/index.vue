@@ -1,10 +1,10 @@
 <template>
 	<view class="page">
 		<!-- 顶部标题 -->
-		<view class="page-header">
+		<!-- <view class="page-header">
 			<text class="page-title">纠纷记录</text>
 			<text class="page-sub">申诉处理结果查询</text>
-		</view>
+		</view> -->
 
 		<!-- 筛选标签 -->
 		<view class="filter-tabs">
@@ -48,13 +48,13 @@
 						<view class="info-line">
 							<text class="line-label">判定结果</text>
 							<text class="line-value result" :class="item.status === 1 ? 'has-result' : 'no-result'">
-								{{ item.result || '等待仲裁' }}
+								{{ item.responsiblePartyLabel || '等待仲裁' }}
 							</text>
 						</view>
-						<view class="info-line">
+						<view class="info-line" v-if="item.status == 1">
 							<text class="line-label">判定理由</text>
-							<text class="line-value result" :class="item.status === 1 ? 'has-result' : 'no-result'">
-								{{ item.responsiblePartyLabel || '' }}
+							<text class="line-value result has-result">
+								{{ item.result || '' }}
 							</text>
 						</view>
 					</view>
@@ -175,10 +175,10 @@ const goToDetail = (item) => {
 }
 
 /* 顶部标题 */
-.page-header {
+/* .page-header {
 	background: linear-gradient(135deg, #4f46e5, #7c3aed);
-	padding: 60rpx 40rpx 40rpx;
-}
+	padding: 40rpx 40rpx 40rpx;
+} */
 
 .page-title {
 	display: block;

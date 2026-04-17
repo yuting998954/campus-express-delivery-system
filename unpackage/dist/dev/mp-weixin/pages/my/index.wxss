@@ -164,10 +164,12 @@
 .logout-btn.data-v-f97bc692,
 .login-btn.data-v-f97bc692 {
 	margin-top: 60rpx;
-	background-color: #fff;
-	color: #ff4d4f;
-	border: none;
+	background-color: #ff4d4f;
+	color: #fff;
+	/* border: none; */
+	border-radius: 28rpx;
 }
 .login-btn.data-v-f97bc692 {
-	color: #007AFF;
+	background-color: #007AFF;
+	color: #fff;
 }

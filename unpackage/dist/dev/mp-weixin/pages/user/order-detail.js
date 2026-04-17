@@ -41,7 +41,7 @@ const _sfc_main = {
           order.value = res.data;
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/user/order-detail.vue:224", "加载订单详情失败", e);
+        common_vendor.index.__f__("error", "at pages/user/order-detail.vue:225", "加载订单详情失败", e);
         common_vendor.index.showToast({ title: "加载失败", icon: "none" });
       } finally {
         common_vendor.index.hideLoading();
@@ -104,7 +104,7 @@ const _sfc_main = {
             proofImage.value = base64;
             common_vendor.index.showToast({ title: "上传成功", icon: "success" });
           } catch (e) {
-            common_vendor.index.__f__("error", "at pages/user/order-detail.vue:299", "上传失败", e);
+            common_vendor.index.__f__("error", "at pages/user/order-detail.vue:300", "上传失败", e);
             common_vendor.index.showToast({ title: "上传失败", icon: "none" });
           } finally {
             common_vendor.index.hideLoading();
@@ -173,7 +173,7 @@ const _sfc_main = {
           loadOrderDetail();
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/user/order-detail.vue:379", "上报失败", e);
+        common_vendor.index.__f__("error", "at pages/user/order-detail.vue:380", "上报失败", e);
         common_vendor.index.showToast({ title: e.message || "上报失败", icon: "none" });
       } finally {
         common_vendor.index.hideLoading();
@@ -196,7 +196,7 @@ const _sfc_main = {
                 }, 1500);
               }
             } catch (e) {
-              common_vendor.index.__f__("error", "at pages/user/order-detail.vue:402", "取消订单失败", e);
+              common_vendor.index.__f__("error", "at pages/user/order-detail.vue:403", "取消订单失败", e);
             }
           }
         }

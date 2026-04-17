@@ -4,11 +4,34 @@
 	flex-direction: column;
 	height: 100vh;
 	background-color: #f1f1f1;
+	/* padding: 20rpx 0; */
+}
+.chat-header.data-v-0a633310 {
+	height: 88rpx;
+	background-color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-bottom: 1rpx solid #eee;
+}
+.header-title.data-v-0a633310 {
+	font-size: 32rpx;
+	font-weight: bold;
+	color: #333;
 }
 .chat-list.data-v-0a633310 {
 	flex: 1;
 	padding: 20rpx;
 	box-sizing: border-box;
+	height: 80vh;
+}
+.load-more.data-v-0a633310 {
+	text-align: center;
+	padding: 20rpx;
+}
+.load-text.data-v-0a633310 {
+	font-size: 24rpx;
+	color: #999;
 }
 .msg-item.data-v-0a633310 {
 	display: flex;
@@ -22,10 +45,17 @@
 	height: 80rpx;
 	border-radius: 8rpx;
 	background-color: #fff;
+	flex-shrink: 0;
 }
 .msg-content.data-v-0a633310 {
 	max-width: 70%;
 	margin: 0 20rpx;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+.msg-item.sent .msg-content.data-v-0a633310 {
+	align-items: flex-end;
 }
 .bubble.data-v-0a633310 {
 	padding: 20rpx;
@@ -33,6 +63,9 @@
 	font-size: 28rpx;
 	position: relative;
 	word-break: break-all;
+	line-height: 1.5;
+	width: -webkit-fit-content;
+	width: fit-content;
 }
 .received .bubble.data-v-0a633310 {
 	background-color: #fff;
@@ -40,9 +73,9 @@
 .received .bubble.data-v-0a633310::after {
 	content: '';
 	position: absolute;
-	left: -10rpx;
+	left: -25rpx;
 	top: 20rpx;
-	border: 10rpx solid transparent;
+	border: 14rpx solid transparent;
 	border-right-color: #fff;
 }
 .sent .bubble.data-v-0a633310 {
@@ -51,10 +84,26 @@
 .sent .bubble.data-v-0a633310::after {
 	content: '';
 	position: absolute;
-	right: -10rpx;
+	right: -25rpx;
 	top: 20rpx;
-	border: 10rpx solid transparent;
+	border: 14rpx solid transparent;
 	border-left-color: #95ec69;
+}
+.image-bubble.data-v-0a633310 {
+	padding: 10rpx;
+}
+.msg-image.data-v-0a633310 {
+	max-width: 300rpx;
+	max-height: 300rpx;
+	border-radius: 8rpx;
+}
+.msg-time.data-v-0a633310 {
+	font-size: 20rpx;
+	color: #bbb;
+	margin-top: 6rpx;
+}
+.msg-item.sent .msg-time.data-v-0a633310 {
+	text-align: right;
 }
 .input-bar.data-v-0a633310 {
 	padding: 20rpx 15rpx;
@@ -64,6 +113,7 @@
 	border-top: 1rpx solid #ddd;
 	padding-bottom: constant(safe-area-inset-bottom);
 	padding-bottom: env(safe-area-inset-bottom);
+	z-index: 999;
 }
 .input.data-v-0a633310 {
 	flex: 1;

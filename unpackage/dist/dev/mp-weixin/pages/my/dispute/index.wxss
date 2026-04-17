@@ -7,10 +7,10 @@
 }
 
 /* 顶部标题 */
-.page-header.data-v-5501f474 {
+/* .page-header {
 	background: linear-gradient(135deg, #4f46e5, #7c3aed);
-	padding: 60rpx 40rpx 40rpx;
-}
+	padding: 40rpx 40rpx 40rpx;
+} */
 .page-title.data-v-5501f474 {
 	display: block;
 	font-size: 44rpx;

@@ -90,10 +90,12 @@ const _sfc_main = {
           }, item.disputeTypeLabel ? {
             f: common_vendor.t(item.disputeTypeLabel)
           } : {}, {
-            g: common_vendor.t(item.result || "等待仲裁"),
+            g: common_vendor.t(item.responsiblePartyLabel || "等待仲裁"),
             h: common_vendor.n(item.status === 1 ? "has-result" : "no-result"),
-            i: common_vendor.t(item.responsiblePartyLabel || ""),
-            j: common_vendor.n(item.status === 1 ? "has-result" : "no-result"),
+            i: item.status == 1
+          }, item.status == 1 ? {
+            j: common_vendor.t(item.result || "")
+          } : {}, {
             k: common_vendor.t(item.status === 1 ? item.updateTime || item.handleTime : item.createTime),
             l: item.disputeId,
             m: common_vendor.n(item.status === 1 ? "card-done" : "card-pending"),

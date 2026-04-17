@@ -13,6 +13,7 @@ const _sfc_main = {
     common_vendor.onShow(() => {
       checkLoginStatus();
       loadUserData();
+      loadEarningStatistics();
     });
     const checkLoginStatus = () => {
       isLoggedIn.value = utils_storage.isLoggedIn();
@@ -20,6 +21,18 @@ const _sfc_main = {
         userInfo.value = utils_storage.getUserInfo() || {};
       } else {
         userInfo.value = {};
+      }
+    };
+    const loadEarningStatistics = async () => {
+      if (!isLoggedIn.value || userInfo.value.role !== 1)
+        return;
+      try {
+        const res = await utils_api.getEarningStatistics();
+        if (res.code === 200) {
+          earnings.value = res.data.todayAmount || "0.00";
+        }
+      } catch (e) {
+        common_vendor.index.__f__("error", "at pages/my/index.vue:115", "加载收益统计失败", e);
       }
     };
     const loadUserData = async () => {
@@ -36,7 +49,7 @@ const _sfc_main = {
           orderCount.value = orderRes.data.total || 0;
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/my/index.vue:122", "加载用户数据失败", e);
+        common_vendor.index.__f__("error", "at pages/my/index.vue:133", "加载用户数据失败", e);
       }
     };
     const getVerifyStatusText = (status) => {
@@ -74,7 +87,7 @@ const _sfc_main = {
             try {
               await utils_api.logout();
             } catch (error) {
-              common_vendor.index.__f__("error", "at pages/my/index.vue:156", "退出登录接口调用失败:", error);
+              common_vendor.index.__f__("error", "at pages/my/index.vue:167", "退出登录接口调用失败:", error);
             }
             utils_storage.clearAuth();
             checkLoginStatus();
@@ -84,25 +97,10 @@ const _sfc_main = {
       });
     };
     const goLogin = () => {
-      common_vendor.index.showModal({
-        title: "提示",
-        content: "请先登录",
-        success: (res) => {
-          if (res.confirm) {
-            common_vendor.index.navigateTo({ url: "/pages/login/login" });
-          }
-        }
-      });
-    };
-    const goDispute = () => {
-      if (!isLoggedIn.value) {
-        goLogin();
-      }
-      common_vendor.index.navigateTo({ url: "/pages/my/dispute/index" });
+      common_vendor.index.navigateTo({ url: "/pages/login/login" });
     };
     const navigateTo = (url) => {
-      const needLoginPages = ["/pages/user/orders", "/pages/pickup/earnings"];
-      if (needLoginPages.includes(url) && !isLoggedIn.value) {
+      if (!isLoggedIn.value) {
         common_vendor.index.showModal({
           title: "提示",
           content: "请先登录",
@@ -114,7 +112,7 @@ const _sfc_main = {
         });
         return;
       }
-      if (url.includes("hall") || url.includes("orders") || url.includes("profile") || url.includes("index")) {
+      if (url.includes("orders")) {
         common_vendor.index.switchTab({ url });
       } else {
         common_vendor.index.navigateTo({ url });
@@ -153,7 +151,7 @@ const _sfc_main = {
             }
           } catch (error) {
             common_vendor.index.hideLoading();
-            common_vendor.index.__f__("error", "at pages/my/index.vue:242", "上传头像失败:", error);
+            common_vendor.index.__f__("error", "at pages/my/index.vue:236", "上传头像失败:", error);
             common_vendor.index.showToast({ title: "上传头像失败", icon: "none" });
           }
         },
@@ -194,7 +192,7 @@ const _sfc_main = {
         t: common_vendor.t(getVerifyStatusText(userInfo.value.verifyStatus)),
         v: common_vendor.n(getVerifyStatusClass(userInfo.value.verifyStatus)),
         w: common_vendor.o(($event) => navigateTo("/pages/user/verify")),
-        x: common_vendor.o(goDispute),
+        x: common_vendor.o(($event) => navigateTo("/pages/my/dispute")),
         y: isLoggedIn.value
       }, isLoggedIn.value ? {
         z: common_vendor.o(handleLogout)

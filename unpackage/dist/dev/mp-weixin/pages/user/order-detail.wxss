@@ -170,6 +170,8 @@
 	align-items: center;
 	padding: 0 30rpx;
 	box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+	padding-bottom: constant(safe-area-inset-bottom);
+	padding-bottom: env(safe-area-inset-bottom);
 }
 .bar-btn.data-v-29badeee {
 	flex: 1;

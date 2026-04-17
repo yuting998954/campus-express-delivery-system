@@ -170,7 +170,8 @@
 		</view>
 
 		<!-- 用于图片压缩的隐藏 canvas -->
-		<canvas canvas-id="image-canvas" id="image-canvas" style="width:800px;height:800px;position:fixed;left:-9999px;top:-9999px;opacity:0;"></canvas>
+		<canvas canvas-id="image-canvas" id="image-canvas"
+			style="width:800px;height:800px;position:fixed;left:-9999px;top:-9999px;opacity:0;"></canvas>
 	</view>
 </template>
 
@@ -436,6 +437,7 @@ const goToAppeal = () => {
 	padding-bottom: 120rpx;
 	background-color: #f8f8f8;
 	min-height: 100vh;
+
 }
 
 .status-section {
@@ -635,6 +637,8 @@ const goToAppeal = () => {
 	align-items: center;
 	padding: 0 30rpx;
 	box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+	padding-bottom: constant(safe-area-inset-bottom);
+	padding-bottom: env(safe-area-inset-bottom);
 }
 
 .bar-btn {

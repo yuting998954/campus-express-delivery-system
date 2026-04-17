@@ -197,3 +197,15 @@ export function getMyDisputes(data) {
 export function getDisputeDetail(disputeId) {
   return request("/dispute/" + disputeId, "GET");
 }
+
+// ========== 收益相关接口 ==========
+
+// 获取收益统计
+export function getEarningStatistics() {
+  return request("/earning/statistics", "GET");
+}
+
+// 获取收益列表
+export function getEarningList(query) {
+  return request("/earning/list", "GET", query);
+}

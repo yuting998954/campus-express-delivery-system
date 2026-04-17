@@ -3,6 +3,13 @@
         "miniprogram": {
             "list": [
                 {
+                    "name": "pages/chat/chat",
+                    "pathName": "pages/chat/chat",
+                    "query": "id=6&orderId=7",
+                    "launchMode": "default",
+                    "scene": null
+                },
+                {
                     "name": "pages/payment/pay",
                     "pathName": "pages/payment/pay",
                     "query": "",
