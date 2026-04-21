@@ -85,6 +85,9 @@ function reportProgress(orderId, progressStatus, proofImagePath) {
 function submitEvaluation(data) {
   return request("/eval/submit", "POST", data);
 }
+function getEvaluationByOrderId(orderId) {
+  return request("/eval/order/" + orderId, "GET");
+}
 function submitDispute(data) {
   return request("/dispute/submit", "POST", data);
 }
@@ -103,6 +106,7 @@ exports.cancelOrderApi = cancelOrderApi;
 exports.confirmReceiptApi = confirmReceiptApi;
 exports.getEarningList = getEarningList;
 exports.getEarningStatistics = getEarningStatistics;
+exports.getEvaluationByOrderId = getEvaluationByOrderId;
 exports.getMyDisputes = getMyDisputes;
 exports.getMyOrders = getMyOrders;
 exports.getOrderDetail = getOrderDetail;

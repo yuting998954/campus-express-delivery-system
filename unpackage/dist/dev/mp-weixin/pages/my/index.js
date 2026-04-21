@@ -15,6 +15,14 @@ const _sfc_main = {
       loadUserData();
       loadEarningStatistics();
     });
+    common_vendor.watch(isLoggedIn, (newVal) => {
+      if (!newVal) {
+        userInfo.value = {};
+        unreadCount.value = 0;
+        orderCount.value = 0;
+        earnings.value = "0.00";
+      }
+    });
     const checkLoginStatus = () => {
       isLoggedIn.value = utils_storage.isLoggedIn();
       if (isLoggedIn.value) {
@@ -29,10 +37,10 @@ const _sfc_main = {
       try {
         const res = await utils_api.getEarningStatistics();
         if (res.code === 200) {
-          earnings.value = res.data.todayAmount || "0.00";
+          earnings.value = res.data.totalAmount || "0.00";
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/my/index.vue:115", "加载收益统计失败", e);
+        common_vendor.index.__f__("error", "at pages/my/index.vue:123", "加载收益统计失败", e);
       }
     };
     const loadUserData = async () => {
@@ -49,7 +57,7 @@ const _sfc_main = {
           orderCount.value = orderRes.data.total || 0;
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/my/index.vue:133", "加载用户数据失败", e);
+        common_vendor.index.__f__("error", "at pages/my/index.vue:141", "加载用户数据失败", e);
       }
     };
     const getVerifyStatusText = (status) => {
@@ -78,6 +86,17 @@ const _sfc_main = {
           return "status-none";
       }
     };
+    const getCreditScoreClass = (score) => {
+      if (!score && score !== 0)
+        return "credit-default";
+      if (score >= 90)
+        return "credit-excellent";
+      if (score >= 80)
+        return "credit-good";
+      if (score >= 60)
+        return "credit-fair";
+      return "credit-poor";
+    };
     const handleLogout = () => {
       common_vendor.index.showModal({
         title: "提示",
@@ -87,7 +106,7 @@ const _sfc_main = {
             try {
               await utils_api.logout();
             } catch (error) {
-              common_vendor.index.__f__("error", "at pages/my/index.vue:167", "退出登录接口调用失败:", error);
+              common_vendor.index.__f__("error", "at pages/my/index.vue:184", "退出登录接口调用失败:", error);
             }
             utils_storage.clearAuth();
             checkLoginStatus();
@@ -151,7 +170,7 @@ const _sfc_main = {
             }
           } catch (error) {
             common_vendor.index.hideLoading();
-            common_vendor.index.__f__("error", "at pages/my/index.vue:236", "上传头像失败:", error);
+            common_vendor.index.__f__("error", "at pages/my/index.vue:253", "上传头像失败:", error);
             common_vendor.index.showToast({ title: "上传头像失败", icon: "none" });
           }
         },
@@ -163,7 +182,7 @@ const _sfc_main = {
       return common_vendor.e({
         a: userInfo.value.avatar || "/static/logo.png",
         b: common_vendor.o(changeAvatar),
-        c: common_vendor.t(userInfo.value.phone || "普通用户 / 代取人"),
+        c: common_vendor.t(!!userInfo.value.phone ? userInfo.value.phone : "普通用户 / 代取人"),
         d: userInfo.value.verifyStatus === 2
       }, userInfo.value.verifyStatus === 2 ? {} : {}, {
         e: unreadCount.value > 0
@@ -178,26 +197,27 @@ const _sfc_main = {
         k: common_vendor.t(earnings.value || "0.00"),
         l: common_vendor.o(($event) => navigateTo("/pages/pickup/earnings"))
       } : {}, {
-        m: common_vendor.t(userInfo.value.rating || "5.0"),
-        n: userInfo.value.role !== 1 ? 1 : "",
-        o: common_vendor.o(($event) => navigateTo("/pages/user/orders")),
-        p: userInfo.value.role === 1
+        m: common_vendor.t(userInfo.value.creditScore || 100),
+        n: common_vendor.n(getCreditScoreClass(userInfo.value.creditScore)),
+        o: userInfo.value.role !== 1 ? 1 : "",
+        p: common_vendor.o(($event) => navigateTo("/pages/user/orders")),
+        q: userInfo.value.role === 1
       }, userInfo.value.role === 1 ? {
-        q: common_vendor.o(($event) => navigateTo("/pages/pickup/hall"))
+        r: common_vendor.o(($event) => navigateTo("/pages/pickup/hall"))
       } : {}, {
-        r: userInfo.value.role === 1
+        s: userInfo.value.role === 1
       }, userInfo.value.role === 1 ? {
-        s: common_vendor.o(($event) => navigateTo("/pages/pickup/earnings"))
+        t: common_vendor.o(($event) => navigateTo("/pages/pickup/earnings"))
       } : {}, {
-        t: common_vendor.t(getVerifyStatusText(userInfo.value.verifyStatus)),
-        v: common_vendor.n(getVerifyStatusClass(userInfo.value.verifyStatus)),
-        w: common_vendor.o(($event) => navigateTo("/pages/user/verify")),
-        x: common_vendor.o(($event) => navigateTo("/pages/my/dispute")),
-        y: isLoggedIn.value
+        v: common_vendor.t(getVerifyStatusText(userInfo.value.verifyStatus)),
+        w: common_vendor.n(getVerifyStatusClass(userInfo.value.verifyStatus)),
+        x: common_vendor.o(($event) => navigateTo("/pages/user/verify")),
+        y: common_vendor.o(($event) => navigateTo("/pages/my/dispute/index")),
+        z: isLoggedIn.value
       }, isLoggedIn.value ? {
-        z: common_vendor.o(handleLogout)
+        A: common_vendor.o(handleLogout)
       } : {
-        A: common_vendor.o(goLogin)
+        B: common_vendor.o(goLogin)
       });
     };
   }

@@ -44,7 +44,7 @@
 			<view class="grid-box">
 				<view class="grid-item" @click="goOrders">
 					<text class="grid-icon">📦</text>
-					<text class="grid-text">{{ userInfo.role === 0 ? '我的订单' : '我的承接' }}</text>
+					<text class="grid-text">{{ !userInfo || userInfo.role === 0 ? '我的订单' : '我的承接' }}</text>
 				</view>
 				<view class="grid-item" @click="goEarnings">
 					<text class="grid-icon">💰</text>

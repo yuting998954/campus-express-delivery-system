@@ -89,14 +89,14 @@ const _sfc_main = {
       ws.value = common_vendor.index.connectSocket({
         url: wsUrl,
         success: () => {
-          common_vendor.index.__f__("log", "at pages/chat/chat.vue:136", "WebSocket 连接中...");
+          common_vendor.index.__f__("log", "at pages/chat/chat.vue:137", "WebSocket 连接中...");
         },
         fail: (err) => {
-          common_vendor.index.__f__("error", "at pages/chat/chat.vue:139", "WebSocket 连接失败", err);
+          common_vendor.index.__f__("error", "at pages/chat/chat.vue:140", "WebSocket 连接失败", err);
         }
       });
       common_vendor.index.onSocketOpen(() => {
-        common_vendor.index.__f__("log", "at pages/chat/chat.vue:144", "WebSocket 已连接");
+        common_vendor.index.__f__("log", "at pages/chat/chat.vue:145", "WebSocket 已连接");
         isConnected.value = true;
       });
       common_vendor.index.onSocketMessage((res) => {
@@ -119,18 +119,18 @@ const _sfc_main = {
               scrollToBottom();
             }
           } else if (data.type === "system") {
-            common_vendor.index.__f__("log", "at pages/chat/chat.vue:169", "系统消息:", data.message);
+            common_vendor.index.__f__("log", "at pages/chat/chat.vue:170", "系统消息:", data.message);
           }
         } catch (e) {
-          common_vendor.index.__f__("error", "at pages/chat/chat.vue:172", "解析消息失败", e);
+          common_vendor.index.__f__("error", "at pages/chat/chat.vue:173", "解析消息失败", e);
         }
       });
       common_vendor.index.onSocketError((err) => {
-        common_vendor.index.__f__("error", "at pages/chat/chat.vue:177", "WebSocket 错误", err);
+        common_vendor.index.__f__("error", "at pages/chat/chat.vue:178", "WebSocket 错误", err);
         isConnected.value = false;
       });
       common_vendor.index.onSocketClose(() => {
-        common_vendor.index.__f__("log", "at pages/chat/chat.vue:182", "WebSocket 已关闭");
+        common_vendor.index.__f__("log", "at pages/chat/chat.vue:183", "WebSocket 已关闭");
         isConnected.value = false;
       });
     };
@@ -168,7 +168,7 @@ const _sfc_main = {
           }
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/chat/chat.vue:223", "发送失败", e);
+        common_vendor.index.__f__("error", "at pages/chat/chat.vue:224", "发送失败", e);
         common_vendor.index.showToast({ title: "发送失败", icon: "none" });
       } finally {
         common_vendor.index.hideLoading();

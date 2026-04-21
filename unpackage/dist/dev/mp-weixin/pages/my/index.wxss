@@ -161,6 +161,21 @@
 	border-radius: 50%;
 	margin-right: 20rpx;
 }
+.credit-excellent.data-v-f97bc692 {
+	color: #52c41a;
+}
+.credit-good.data-v-f97bc692 {
+	color: #1890ff;
+}
+.credit-fair.data-v-f97bc692 {
+	color: #faad14;
+}
+.credit-poor.data-v-f97bc692 {
+	color: #ff4d4f;
+}
+.credit-default.data-v-f97bc692 {
+	color: #007AFF;
+}
 .logout-btn.data-v-f97bc692,
 .login-btn.data-v-f97bc692 {
 	margin-top: 60rpx;

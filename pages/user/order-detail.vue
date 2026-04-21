@@ -27,6 +27,7 @@
 				<text class="label">收件地址</text>
 				<text class="value">{{ order.address }}</text>
 			</view>
+
 			<view class="info-row">
 				<text class="label">期望时间</text>
 				<text class="value">{{ order.expectedTime }}</text>
@@ -35,6 +36,7 @@
 				<text class="label">特殊备注</text>
 				<text class="value">{{ order.notes || '无' }}</text>
 			</view>
+
 		</view>
 
 		<view class="info-card">
@@ -73,7 +75,10 @@
 				<image class="avatar" src="/static/logo.png" mode="aspectFill"></image>
 				<view class="name-box">
 					<view class="name">{{ order.runnerName || '代取员' + order.runnerId }}</view>
-					<view class="rating">评分: {{ order.runnerRating || '暂无' }}</view>
+					<view class="credit-score">
+						<text class="score-value" :class="getCreditScoreClass(order.runnerCreditScore)">信誉分: {{
+							order.runnerCreditScore || 100 }}</text>
+					</view>
 				</view>
 				<button class="chat-btn" size="mini" @click="goToChat">联系他</button>
 			</view>
@@ -92,6 +97,32 @@
 					</image>
 					<text>送达凭证</text>
 				</view>
+			</view>
+		</view>
+
+		<!-- 评价信息（仅已完成的订单展示） -->
+		<view class="info-card eval-info-card" v-if="order.status === 4 || order.status === 5">
+			<view class="card-title">服务评价</view>
+			<view v-if="evaluation">
+				<view class="eval-header">
+					<view class="eval-stars">
+						<text v-for="i in 5" :key="i" class="eval-star"
+							:class="{ active: i <= evaluation.star }">★</text>
+					</view>
+					<text class="eval-label">{{ getStarLabel(evaluation.star) }}</text>
+				</view>
+				<view class="eval-tags" v-if="evaluation.tags && evaluation.tags.length">
+					<text v-for="(tag, idx) in evaluation.tags" :key="idx" class="eval-tag">{{ tag }}</text>
+				</view>
+				<view class="eval-content" v-if="evaluation.content">
+					<text>{{ evaluation.content }}</text>
+				</view>
+				<view class="eval-time" v-if="evaluation.createTime">
+					<text>{{ evaluation.createTime }}</text>
+				</view>
+			</view>
+			<view v-else class="eval-empty">
+				<text>暂无评价</text>
 			</view>
 		</view>
 
@@ -178,10 +209,11 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
-import { getOrderDetail, cancelOrderApi, reportProgress } from '@/utils/api'
+import { getOrderDetail, cancelOrderApi, reportProgress, getEvaluationByOrderId } from '@/utils/api'
 import { getUserInfo } from '@/utils/storage.js'
 
 const order = ref({})
+const evaluation = ref(null)
 const userInfo = ref({})
 const showModal = ref(false)
 const modalTitle = ref('')
@@ -220,12 +252,27 @@ const loadOrderDetail = async () => {
 		const res = await getOrderDetail(orderId.value);
 		if (res.code === 200) {
 			order.value = res.data;
+			// 已完成订单，加载评价信息
+			if (order.value.status === 4 || order.value.status === 5) {
+				loadEvaluation()
+			}
 		}
 	} catch (e) {
 		console.error('加载订单详情失败', e);
 		uni.showToast({ title: '加载失败', icon: 'none' });
 	} finally {
 		uni.hideLoading();
+	}
+}
+
+const loadEvaluation = async () => {
+	try {
+		const res = await getEvaluationByOrderId(orderId.value);
+		if (res.code === 200 && res.data) {
+			evaluation.value = res.data;
+		}
+	} catch (e) {
+		console.error('加载评价信息失败', e);
 	}
 }
 
@@ -239,6 +286,8 @@ const canReportProgress = computed(() => {
 	if (!order.value) return false
 	return order.value.status === 1 || order.value.status === 2 || order.value.status === 3 || order.value.status === 7  // 包含纠纷中的状态
 });
+
+
 
 const statusDesc = computed(() => {
 	if (!order.value) return '';
@@ -258,6 +307,21 @@ const statusDesc = computed(() => {
 const previewImg = (url) => {
 	uni.previewImage({ urls: [url] });
 }
+
+// 信誉分样式
+const getCreditScoreClass = (score) => {
+	if (!score) return 'default';
+	if (score >= 90) return 'excellent';
+	if (score >= 80) return 'good';
+	if (score >= 60) return 'fair';
+	return 'poor';
+};
+
+// 评价星级文字
+const getStarLabel = (star) => {
+	const labels = ['', '非常不满意', '不满意', '一般', '满意', '非常满意'];
+	return labels[star] || '';
+};
 
 // 联系发布者（代取员视角）
 const goToChatWithPublisher = () => {
@@ -521,9 +585,26 @@ const goToAppeal = () => {
 	font-size: 28rpx;
 }
 
-.rating {
+.credit-score {
 	font-size: 22rpx;
+	color: #52c41a;
+}
+
+.score-value.excellent {
+	color: #52c41a;
+	font-weight: bold;
+}
+
+.score-value.good {
+	color: #1890ff;
+}
+
+.score-value.fair {
 	color: #faad14;
+}
+
+.score-value.poor {
+	color: #ff4d4f;
 }
 
 .phone {
@@ -550,6 +631,77 @@ const goToAppeal = () => {
 	height: 150rpx;
 	border-radius: 8rpx;
 	margin-bottom: 10rpx;
+}
+
+/* 评价信息区域 */
+.eval-info-card {
+	border-left: 8rpx solid #52c41a;
+}
+
+.eval-header {
+	display: flex;
+	align-items: center;
+	margin-bottom: 16rpx;
+}
+
+.eval-stars {
+	display: flex;
+	gap: 4rpx;
+}
+
+.eval-star {
+	font-size: 36rpx;
+	color: #ddd;
+	margin-right: 4rpx;
+}
+
+.eval-star.active {
+	color: #ffc107;
+}
+
+.eval-label {
+	font-size: 26rpx;
+	color: #ffc107;
+	margin-left: 12rpx;
+	font-weight: bold;
+}
+
+.eval-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12rpx;
+	margin-bottom: 16rpx;
+}
+
+.eval-tag {
+	padding: 6rpx 16rpx;
+	background: #fff7e6;
+	color: #fa8c16;
+	border-radius: 20rpx;
+	font-size: 22rpx;
+}
+
+.eval-content {
+	font-size: 26rpx;
+	color: #333;
+	line-height: 1.6;
+	padding: 16rpx;
+	background: #f9f9f9;
+	border-radius: 8rpx;
+	margin-bottom: 12rpx;
+}
+
+.eval-time {
+	font-size: 22rpx;
+	color: #999;
+	text-align: right;
+}
+
+.eval-empty {
+	text-align: center;
+	color: #999;
+	font-size: 26rpx;
+	padding: 20rpx 0;
 }
 
 /* 进度上报面板 */

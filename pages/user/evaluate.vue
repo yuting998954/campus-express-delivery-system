@@ -64,6 +64,7 @@
 					>★</text>
 				</view>
 				<text class="rating-text">{{ ratingText }}</text>
+				<text class="credit-tip">好评可提升骑手信誉分</text>
 			</view>
 
 			<view class="tags-box">
@@ -127,7 +128,7 @@ const orderId = ref(null)
 const evaluatorId = ref(null)
 const targetUserId = ref(null)
 
-const availableTags = ['送达准时', '服务态度好', '穿着整洁', '餐品完好', '风雨无阻']
+const availableTags = ['按时送达', '提前送达', '服务态度好', '穿着整洁', '风雨无阻', '餐品完好']
 
 const ratingText = computed(() => {
     const texts = ['非常不满意', '不满意', '一般', '满意', '非常满意'];
@@ -424,6 +425,12 @@ const submitEval = async () => {
 	font-size: 28rpx;
 	color: #ffc107;
 	font-weight: bold;
+}
+
+.credit-tip {
+	font-size: 22rpx;
+	color: #999;
+	margin-top: 8rpx;
 }
 
 .tags-box {

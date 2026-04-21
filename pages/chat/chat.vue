@@ -129,6 +129,7 @@ const scrollToBottom = () => {
 // WebSocket连接
 const connectWebSocket = () => {
 	const token = uni.getStorageSync('token') || ''
+	//构建WebSocket连接URL，包含token、orderId和userId作为查询参数，确保服务器能够识别和验证连接的用户身份以及关联的订单信息。
 	const wsUrl = `ws://localhost:8081/ws/chat?token=${encodeURIComponent(token)}&orderId=${orderId.value}&userId=${currentUserId.value}`
 	ws.value = uni.connectSocket({
 		url: wsUrl,

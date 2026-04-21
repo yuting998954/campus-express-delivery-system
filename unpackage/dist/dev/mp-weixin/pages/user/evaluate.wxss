@@ -166,6 +166,11 @@
 	color: #ffc107;
 	font-weight: bold;
 }
+.credit-tip.data-v-3fdceec0 {
+	font-size: 22rpx;
+	color: #999;
+	margin-top: 8rpx;
+}
 .tags-box.data-v-3fdceec0 {
 	display: flex;
 	flex-wrap: wrap;

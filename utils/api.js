@@ -156,6 +156,11 @@ export function submitEvaluation(data) {
   return request("/eval/submit", "POST", data);
 }
 
+// 根据订单ID获取评价信息
+export function getEvaluationByOrderId(orderId) {
+  return request("/eval/order/" + orderId, "GET");
+}
+
 // ========== 消息相关接口 ==========
 
 // 获取未读消息数量

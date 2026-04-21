@@ -23,7 +23,7 @@ const _sfc_main = {
     const orderId = common_vendor.ref(null);
     const evaluatorId = common_vendor.ref(null);
     const targetUserId = common_vendor.ref(null);
-    const availableTags = ["送达准时", "服务态度好", "穿着整洁", "餐品完好", "风雨无阻"];
+    const availableTags = ["按时送达", "提前送达", "服务态度好", "穿着整洁", "风雨无阻", "餐品完好"];
     const ratingText = common_vendor.computed(() => {
       const texts = ["非常不满意", "不满意", "一般", "满意", "非常满意"];
       return texts[rating.value - 1] || "";
@@ -56,7 +56,7 @@ const _sfc_main = {
             }
           }
         } catch (e) {
-          common_vendor.index.__f__("error", "at pages/user/evaluate.vue:168", "加载订单信息失败", e);
+          common_vendor.index.__f__("error", "at pages/user/evaluate.vue:169", "加载订单信息失败", e);
         } finally {
           common_vendor.index.hideLoading();
         }
@@ -106,7 +106,7 @@ const _sfc_main = {
           }, 1500);
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/user/evaluate.vue:223", "提交评价失败", e);
+        common_vendor.index.__f__("error", "at pages/user/evaluate.vue:224", "提交评价失败", e);
       } finally {
         common_vendor.index.hideLoading();
       }

@@ -7,6 +7,7 @@ const _sfc_main = {
   __name: "order-detail",
   setup(__props) {
     const order = common_vendor.ref({});
+    const evaluation = common_vendor.ref(null);
     const userInfo = common_vendor.ref({});
     const showModal = common_vendor.ref(false);
     const modalTitle = common_vendor.ref("");
@@ -39,12 +40,25 @@ const _sfc_main = {
         const res = await utils_api.getOrderDetail(orderId.value);
         if (res.code === 200) {
           order.value = res.data;
+          if (order.value.status === 4 || order.value.status === 5) {
+            loadEvaluation();
+          }
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/user/order-detail.vue:225", "加载订单详情失败", e);
+        common_vendor.index.__f__("error", "at pages/user/order-detail.vue:261", "加载订单详情失败", e);
         common_vendor.index.showToast({ title: "加载失败", icon: "none" });
       } finally {
         common_vendor.index.hideLoading();
+      }
+    };
+    const loadEvaluation = async () => {
+      try {
+        const res = await utils_api.getEvaluationByOrderId(orderId.value);
+        if (res.code === 200 && res.data) {
+          evaluation.value = res.data;
+        }
+      } catch (e) {
+        common_vendor.index.__f__("error", "at pages/user/order-detail.vue:275", "加载评价信息失败", e);
       }
     };
     const isRunner = common_vendor.computed(() => {
@@ -73,6 +87,21 @@ const _sfc_main = {
     });
     const previewImg = (url) => {
       common_vendor.index.previewImage({ urls: [url] });
+    };
+    const getCreditScoreClass = (score) => {
+      if (!score)
+        return "default";
+      if (score >= 90)
+        return "excellent";
+      if (score >= 80)
+        return "good";
+      if (score >= 60)
+        return "fair";
+      return "poor";
+    };
+    const getStarLabel = (star) => {
+      const labels = ["", "非常不满意", "不满意", "一般", "满意", "非常满意"];
+      return labels[star] || "";
     };
     const goToChatWithPublisher = () => {
       if (order.value && order.value.publisherId) {
@@ -104,7 +133,7 @@ const _sfc_main = {
             proofImage.value = base64;
             common_vendor.index.showToast({ title: "上传成功", icon: "success" });
           } catch (e) {
-            common_vendor.index.__f__("error", "at pages/user/order-detail.vue:300", "上传失败", e);
+            common_vendor.index.__f__("error", "at pages/user/order-detail.vue:364", "上传失败", e);
             common_vendor.index.showToast({ title: "上传失败", icon: "none" });
           } finally {
             common_vendor.index.hideLoading();
@@ -173,7 +202,7 @@ const _sfc_main = {
           loadOrderDetail();
         }
       } catch (e) {
-        common_vendor.index.__f__("error", "at pages/user/order-detail.vue:380", "上报失败", e);
+        common_vendor.index.__f__("error", "at pages/user/order-detail.vue:444", "上报失败", e);
         common_vendor.index.showToast({ title: e.message || "上报失败", icon: "none" });
       } finally {
         common_vendor.index.hideLoading();
@@ -196,7 +225,7 @@ const _sfc_main = {
                 }, 1500);
               }
             } catch (e) {
-              common_vendor.index.__f__("error", "at pages/user/order-detail.vue:403", "取消订单失败", e);
+              common_vendor.index.__f__("error", "at pages/user/order-detail.vue:467", "取消订单失败", e);
             }
           }
         }
@@ -252,73 +281,102 @@ const _sfc_main = {
       }, !isRunner.value && order.value.runnerId ? {
         t: common_assets._imports_0,
         v: common_vendor.t(order.value.runnerName || "代取员" + order.value.runnerId),
-        w: common_vendor.t(order.value.runnerRating || "暂无"),
-        x: common_vendor.o(goToChat)
+        w: common_vendor.t(order.value.runnerCreditScore || 100),
+        x: common_vendor.n(getCreditScoreClass(order.value.runnerCreditScore)),
+        y: common_vendor.o(goToChat)
       } : {}, {
-        y: order.value.pickupPhoto || order.value.deliveryPhoto
+        z: order.value.pickupPhoto || order.value.deliveryPhoto
       }, order.value.pickupPhoto || order.value.deliveryPhoto ? common_vendor.e({
-        z: order.value.pickupPhoto
+        A: order.value.pickupPhoto
       }, order.value.pickupPhoto ? {
-        A: order.value.pickupPhoto,
-        B: common_vendor.o(($event) => previewImg(order.value.pickupPhoto))
+        B: order.value.pickupPhoto,
+        C: common_vendor.o(($event) => previewImg(order.value.pickupPhoto))
       } : {}, {
-        C: order.value.deliveryPhoto
+        D: order.value.deliveryPhoto
       }, order.value.deliveryPhoto ? {
-        D: order.value.deliveryPhoto,
-        E: common_vendor.o(($event) => previewImg(order.value.deliveryPhoto))
+        E: order.value.deliveryPhoto,
+        F: common_vendor.o(($event) => previewImg(order.value.deliveryPhoto))
       } : {}) : {}, {
-        F: isRunner.value && canReportProgress.value
-      }, isRunner.value && canReportProgress.value ? common_vendor.e({
-        G: order.value.status >= 1 ? 1 : "",
-        H: order.value.status > 1 ? 1 : "",
-        I: order.value.status > 1 ? 1 : "",
-        J: order.value.status >= 1 ? 1 : "",
-        K: order.value.status > 1 ? 1 : "",
-        L: order.value.status > 2 ? 1 : "",
-        M: order.value.status >= 2 ? 1 : "",
-        N: order.value.status > 2 ? 1 : "",
-        O: order.value.status > 3 ? 1 : "",
-        P: order.value.status >= 3 ? 1 : "",
-        Q: order.value.status >= 3 ? 1 : "",
-        R: order.value.status === 1
-      }, order.value.status === 1 ? {
-        S: common_vendor.o(($event) => showProgressModal("picked"))
-      } : {}, {
-        T: order.value.status === 2
-      }, order.value.status === 2 ? {
-        U: common_vendor.o(($event) => showProgressModal("delivered"))
-      } : {}, {
-        V: order.value.status === 3
-      }, order.value.status === 3 ? {} : {}) : {}, {
-        W: order.value.status === 0 || order.value.status === 1
-      }, order.value.status === 0 || order.value.status === 1 ? {
-        X: common_vendor.o(cancelOrder)
-      } : {}, {
-        Y: order.value.status === 3 && !isRunner.value
-      }, order.value.status === 3 && !isRunner.value ? {
-        Z: common_vendor.o(confirmReceipt)
-      } : {}, {
-        aa: order.value.status === 4 || order.value.status === 5
-      }, order.value.status === 4 || order.value.status === 5 ? {
-        ab: common_vendor.o(goToAppeal)
-      } : {}, {
-        ac: order.value.status === 4 && !order.value.isEvaluated && !isRunner.value
-      }, order.value.status === 4 && !order.value.isEvaluated && !isRunner.value ? {
-        ad: common_vendor.o(goToEvaluate)
-      } : {}, {
-        ae: showModal.value
-      }, showModal.value ? common_vendor.e({
-        af: common_vendor.t(modalTitle.value),
-        ag: proofImage.value
-      }, proofImage.value ? {
-        ah: proofImage.value
-      } : {}, {
-        ai: common_vendor.o(chooseImage),
-        aj: common_vendor.o(($event) => showModal.value = false),
-        ak: common_vendor.o(submitProgress),
-        al: common_vendor.o(() => {
+        G: order.value.status === 4 || order.value.status === 5
+      }, order.value.status === 4 || order.value.status === 5 ? common_vendor.e({
+        H: evaluation.value
+      }, evaluation.value ? common_vendor.e({
+        I: common_vendor.f(5, (i, k0, i0) => {
+          return {
+            a: i,
+            b: i <= evaluation.value.star ? 1 : ""
+          };
         }),
-        am: common_vendor.o(($event) => showModal.value = false)
+        J: common_vendor.t(getStarLabel(evaluation.value.star)),
+        K: evaluation.value.tags && evaluation.value.tags.length
+      }, evaluation.value.tags && evaluation.value.tags.length ? {
+        L: common_vendor.f(evaluation.value.tags, (tag, idx, i0) => {
+          return {
+            a: common_vendor.t(tag),
+            b: idx
+          };
+        })
+      } : {}, {
+        M: evaluation.value.content
+      }, evaluation.value.content ? {
+        N: common_vendor.t(evaluation.value.content)
+      } : {}, {
+        O: evaluation.value.createTime
+      }, evaluation.value.createTime ? {
+        P: common_vendor.t(evaluation.value.createTime)
+      } : {}) : {}) : {}, {
+        Q: isRunner.value && canReportProgress.value
+      }, isRunner.value && canReportProgress.value ? common_vendor.e({
+        R: order.value.status >= 1 ? 1 : "",
+        S: order.value.status > 1 ? 1 : "",
+        T: order.value.status > 1 ? 1 : "",
+        U: order.value.status >= 1 ? 1 : "",
+        V: order.value.status > 1 ? 1 : "",
+        W: order.value.status > 2 ? 1 : "",
+        X: order.value.status >= 2 ? 1 : "",
+        Y: order.value.status > 2 ? 1 : "",
+        Z: order.value.status > 3 ? 1 : "",
+        aa: order.value.status >= 3 ? 1 : "",
+        ab: order.value.status >= 3 ? 1 : "",
+        ac: order.value.status === 1
+      }, order.value.status === 1 ? {
+        ad: common_vendor.o(($event) => showProgressModal("picked"))
+      } : {}, {
+        ae: order.value.status === 2
+      }, order.value.status === 2 ? {
+        af: common_vendor.o(($event) => showProgressModal("delivered"))
+      } : {}, {
+        ag: order.value.status === 3
+      }, order.value.status === 3 ? {} : {}) : {}, {
+        ah: order.value.status === 0 || order.value.status === 1
+      }, order.value.status === 0 || order.value.status === 1 ? {
+        ai: common_vendor.o(cancelOrder)
+      } : {}, {
+        aj: order.value.status === 3 && !isRunner.value
+      }, order.value.status === 3 && !isRunner.value ? {
+        ak: common_vendor.o(confirmReceipt)
+      } : {}, {
+        al: order.value.status === 4 || order.value.status === 5
+      }, order.value.status === 4 || order.value.status === 5 ? {
+        am: common_vendor.o(goToAppeal)
+      } : {}, {
+        an: order.value.status === 4 && !order.value.isEvaluated && !isRunner.value
+      }, order.value.status === 4 && !order.value.isEvaluated && !isRunner.value ? {
+        ao: common_vendor.o(goToEvaluate)
+      } : {}, {
+        ap: showModal.value
+      }, showModal.value ? common_vendor.e({
+        aq: common_vendor.t(modalTitle.value),
+        ar: proofImage.value
+      }, proofImage.value ? {
+        as: proofImage.value
+      } : {}, {
+        at: common_vendor.o(chooseImage),
+        av: common_vendor.o(($event) => showModal.value = false),
+        aw: common_vendor.o(submitProgress),
+        ax: common_vendor.o(() => {
+        }),
+        ay: common_vendor.o(($event) => showModal.value = false)
       }) : {});
     };
   }

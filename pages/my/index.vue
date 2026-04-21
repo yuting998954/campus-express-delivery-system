@@ -5,7 +5,7 @@
 			</image>
 			<view class="user-info">
 				<view class="nickname-row">
-					<view class="nickname">{{ userInfo.phone || '普通用户 / 代取人' }}</view>
+					<view class="nickname">{{ !!userInfo.phone ? userInfo.phone : '普通用户 / 代取人' }}</view>
 					<!-- 已认证标识 -->
 					<view class="verify-badge" v-if="userInfo.verifyStatus === 2">
 						<text class="badge-text">已认证</text>
@@ -30,10 +30,11 @@
 				<view class="num">￥{{ earnings || '0.00' }}</view>
 				<view class="label">我的收益</view>
 			</view>
-			<!-- 评价得分 - 所有人都显示 -->
+			<!-- 信誉分 - 所有人都显示 -->
 			<view class="stat-item">
-				<view class="num">{{ userInfo.rating || '5.0' }}</view>
-				<view class="label">评价得分</view>
+				<view class="num" :class="getCreditScoreClass(userInfo.creditScore)">{{ userInfo.creditScore || 100 }}
+				</view>
+				<view class="label">信誉分</view>
 			</view>
 		</view>
 
@@ -61,7 +62,7 @@
 				</view>
 				<text class="arrow">></text>
 			</view>
-			<view class="menu-item" @click="navigateTo('/pages/my/dispute')">
+			<view class="menu-item" @click="navigateTo('/pages/my/dispute/index')">
 				<text class="icon">⚖️</text>
 				<text class="text">纠纷记录</text>
 				<text class="arrow">></text>
@@ -79,7 +80,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { isLoggedIn as checkIsLoggedIn, getUserInfo, clearAuth, setUserInfo } from '@/utils/storage.js'
 import { logout, uploadAvatar, getMyOrders, getMyDisputes, getEarningStatistics } from '@/utils/api.js'
@@ -95,7 +96,14 @@ onShow(() => {
 	loadUserData()
 	loadEarningStatistics()
 })
-
+watch(isLoggedIn, (newVal) => {
+	if (!newVal) {
+		userInfo.value = {}
+		unreadCount.value = 0
+		orderCount.value = 0
+		earnings.value = '0.00'
+	}
+})
 const checkLoginStatus = () => {
 	isLoggedIn.value = checkIsLoggedIn()
 	if (isLoggedIn.value) {
@@ -109,7 +117,7 @@ const loadEarningStatistics = async () => {
 	try {
 		const res = await getEarningStatistics()
 		if (res.code === 200) {
-			earnings.value = res.data.todayAmount || '0.00'
+			earnings.value = res.data.totalAmount || '0.00'
 		}
 	} catch (e) {
 		console.error('加载收益统计失败', e)
@@ -153,6 +161,15 @@ const getVerifyStatusClass = (status) => {
 		case 3: return 'status-reject'
 		default: return 'status-none'
 	}
+}
+
+// 信誉分样式
+const getCreditScoreClass = (score) => {
+	if (!score && score !== 0) return 'credit-default'
+	if (score >= 90) return 'credit-excellent'
+	if (score >= 80) return 'credit-good'
+	if (score >= 60) return 'credit-fair'
+	return 'credit-poor'
 }
 
 const handleLogout = () => {
@@ -436,6 +453,26 @@ const changeAvatar = () => {
 	background-color: #ff4d4f;
 	border-radius: 50%;
 	margin-right: 20rpx;
+}
+
+.credit-excellent {
+	color: #52c41a;
+}
+
+.credit-good {
+	color: #1890ff;
+}
+
+.credit-fair {
+	color: #faad14;
+}
+
+.credit-poor {
+	color: #ff4d4f;
+}
+
+.credit-default {
+	color: #007AFF;
 }
 
 .logout-btn,

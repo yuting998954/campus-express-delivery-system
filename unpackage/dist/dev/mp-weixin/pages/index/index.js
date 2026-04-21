@@ -71,7 +71,7 @@ const _sfc_main = {
         b: common_vendor.t(userInfo.value && userInfo.value.nickname ? userInfo.value.nickname : "同学"),
         c: common_vendor.o(goPublish),
         d: common_vendor.o(goPickup),
-        e: common_vendor.t(userInfo.value.role === 0 ? "我的订单" : "我的承接"),
+        e: common_vendor.t(!userInfo.value || userInfo.value.role === 0 ? "我的订单" : "我的承接"),
         f: common_vendor.o(goOrders),
         g: common_vendor.o(goEarnings),
         h: common_vendor.o(goAddress),
