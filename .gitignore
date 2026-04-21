@@ -1,0 +1,16 @@
+# 忽略 uni-app 编译产物
+unpackage/
+dist/
+
+# 忽略依赖
+node_modules/
+
+# 忽略日志
+*.log
+npm-debug.log*
+
+# 系统文件
+.DS_Store
+.idea/
+.vscode/
+*.swp
